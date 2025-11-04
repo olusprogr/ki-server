@@ -5,6 +5,8 @@ const { exec } = require('child_process');
 const app = express()
 const port = 3000
 
+const LAN_SUBNET = '192.168.178.0/24';
+
 require('dotenv').config();
 
 const API_KEY = process.env.API_KEY;
@@ -76,12 +78,12 @@ app.get('/open-ssh-tunnel', (req, res) => {
         return res.status(403).send('Forbidden');
     }
 
-    exec('sudo ufw allow 22', (error, stdout, stderr) => {
+    exec('sudo ufw delete allow 22', (error, stdout, stderr) => {
         if (error) {
             console.error(`Error executing script: ${error}`);
             return res.status(500).send('Error executing script');
         }
-        exec('sudo systemctl start ssh', (err) => {
+        exec('sudo ufw allow 22', (err) => {
             if (err) console.error(`Error starting SSH: ${err}`);
             res.send(`SSH opened successfully: ${stdout}`);
         });
@@ -100,12 +102,12 @@ app.get('/close-ssh-tunnel', (req, res) => {
         return res.status(403).send('Forbidden');
     }
 
-    exec('sudo ufw deny 22', (error, stdout, stderr) => {
+    exec('sudo ufw delete allow 22', (error, stdout, stderr) => {
         if (error) {
             console.error(`Error executing script: ${error}`);
             return res.status(500).send('Error executing script');
         }
-        exec('sudo systemctl stop ssh', (err) => {
+        exec(`sudo ufw allow from ${LAN_SUBNET} to any port 22 proto tcp`, (err) => {
             if (err) console.error(`Error stopping SSH: ${err}`);
             res.send(`SSH closed successfully: ${stdout}`);
         });
