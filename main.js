@@ -66,8 +66,6 @@ app.get('/', (req, res) => {
   res.redirect(`/test?api_key=${api_key}&admin_key=${admin_key}`);
 });
 
-const { exec } = require('child_process');
-
 app.get('/open-ssh-tunnel', (req, res) => {
     const api_key = req.query.api_key;
     const admin_key = req.query.admin_key;
