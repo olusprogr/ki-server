@@ -98,25 +98,21 @@ app.get('/close-ssh-tunnel', (req, res) => {
     const api_key = req.query.api_key;
     const admin_key = req.query.admin_key;
 
-    if (!api_key || !admin_key) {
-        return res.status(400).send('Missing api_key or admin_key parameter');
-    }
+    if (!api_key || !admin_key) return res.status(400).send('Missing api_key or admin_key parameter');
+    if (api_key !== API_KEY || admin_key !== ADMIN_KEY) return res.status(403).send('Forbidden');
 
-    if (api_key !== API_KEY || admin_key !== ADMIN_KEY) {
-        return res.status(403).send('Forbidden');
-    }
+    // Schritt 1: alle bestehenden Port-22-Regeln löschen (IPv4 + IPv6)
+    exec('sudo ufw --force delete allow 22', (error1) => {
+        exec('sudo ufw --force delete allow 22/tcp', (error2) => {
+            // Schritt 2: SSH nur noch aus LAN erlauben
+            exec(`sudo ufw allow from ${LAN_SUBNET} to any port 22 proto tcp`, (error3) => {
+                if (error3) console.error(`Error setting LAN rule: ${error3}`);
 
-    exec('sudo ufw delete allow 22', (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error executing script: ${error}`);
-            return res.status(500).send('Error executing script');
-        }
-        exec(`sudo ufw allow from ${LAN_SUBNET} to any port 22 proto tcp`, (err) => {
-            if (err) console.error(`Error stopping SSH: ${err}`);
-            res.send(`SSH closed successfully: ${stdout}`);
-
-            exec('sudo ufw reload', (err) => {
-                if (err) console.error(`Error reloading UFW: ${err}`);
+                // Schritt 3: UFW neu laden, damit alles sofort gilt
+                exec('sudo ufw reload', (error4) => {
+                    if (error4) console.error(`Error reloading UFW: ${error4}`);
+                    res.send('SSH closed for external connections, LAN still allowed.');
+                });
             });
         });
     });
