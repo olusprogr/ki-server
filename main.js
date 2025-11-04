@@ -66,33 +66,37 @@ app.get('/', (req, res) => {
   res.redirect(`/test?api_key=${api_key}&admin_key=${admin_key}`);
 });
 
+const { exec } = require('child_process');
+
 app.get('/open-ssh-tunnel', (req, res) => {
     const api_key = req.query.api_key;
     const admin_key = req.query.admin_key;
 
-    if (!api_key || !admin_key) {
-        return res.status(400).send('Missing api_key or admin_key parameter');
-    }
+    if (!api_key || !admin_key) return res.status(400).send('Missing api_key or admin_key parameter');
+    if (api_key !== API_KEY || admin_key !== ADMIN_KEY) return res.status(403).send('Forbidden');
 
-    if (api_key !== API_KEY || admin_key !== ADMIN_KEY) {
-        return res.status(403).send('Forbidden');
-    }
+    // Schritt 1: alte LAN-only Regeln löschen
+    exec('sudo ufw --force delete allow 22', (err1) => {
+        exec('sudo ufw --force delete allow 22/tcp', (err2) => {
 
-    exec('sudo ufw delete allow 22', (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error executing script: ${error}`);
-            return res.status(500).send('Error executing script');
-        }
-        exec('sudo ufw allow 22', (err) => {
-            if (err) console.error(`Error starting SSH: ${err}`);
-            res.send(`SSH opened successfully: ${stdout}`);
+            // Schritt 2: SSH komplett für alle erlauben (IPv4 & IPv6)
+            exec('sudo ufw allow 22', (err3) => {
+                if (err3) console.error(`Error setting IPv4 allow: ${err3}`);
 
-            exec('sudo ufw reload', (err) => {
-                if (err) console.error(`Error reloading UFW: ${err}`);
+                exec('sudo ufw allow 22/tcp', (err4) => {
+                    if (err4) console.error(`Error setting IPv6 allow: ${err4}`);
+
+                    // Schritt 3: UFW reload
+                    exec('sudo ufw reload', (err5) => {
+                        if (err5) console.error(`Error reloading UFW: ${err5}`);
+                        res.send('SSH opened for all connections (IPv4 & IPv6).');
+                    });
+                });
             });
         });
     });
 });
+
 
 app.get('/close-ssh-tunnel', (req, res) => {
     const api_key = req.query.api_key;
