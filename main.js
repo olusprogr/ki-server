@@ -69,19 +69,22 @@ app.get('/open-ssh-tunnel', (req, res) => {
     const admin_key = req.query.admin_key;
 
     if (!api_key || !admin_key) {
-      return res.status(400).send('Missing api_key or admin_key parameter');
+        return res.status(400).send('Missing api_key or admin_key parameter');
     }
 
     if (api_key !== API_KEY || admin_key !== ADMIN_KEY) {
         return res.status(403).send('Forbidden');
     }
 
-    exec('sudo ufw allow 3000', (error, stdout, stderr) => {
+    exec('sudo ufw allow 22', (error, stdout, stderr) => {
         if (error) {
             console.error(`Error executing script: ${error}`);
             return res.status(500).send('Error executing script');
         }
-        res.send(`SSH tunnel opened successfully: ${stdout}`);
+        exec('sudo systemctl start ssh', (err) => {
+            if (err) console.error(`Error starting SSH: ${err}`);
+            res.send(`SSH opened successfully: ${stdout}`);
+        });
     });
 });
 
@@ -90,19 +93,22 @@ app.get('/close-ssh-tunnel', (req, res) => {
     const admin_key = req.query.admin_key;
 
     if (!api_key || !admin_key) {
-      return res.status(400).send('Missing api_key or admin_key parameter');
+        return res.status(400).send('Missing api_key or admin_key parameter');
     }
 
     if (api_key !== API_KEY || admin_key !== ADMIN_KEY) {
         return res.status(403).send('Forbidden');
     }
 
-    exec('sudo ufw deny 3000', (error, stdout, stderr) => {
+    exec('sudo ufw deny 22', (error, stdout, stderr) => {
         if (error) {
             console.error(`Error executing script: ${error}`);
             return res.status(500).send('Error executing script');
         }
-        res.send(`SSH tunnel closed successfully: ${stdout}`);
+        exec('sudo systemctl stop ssh', (err) => {
+            if (err) console.error(`Error stopping SSH: ${err}`);
+            res.send(`SSH closed successfully: ${stdout}`);
+        });
     });
 });
 
