@@ -86,6 +86,10 @@ app.get('/open-ssh-tunnel', (req, res) => {
         exec('sudo ufw allow 22', (err) => {
             if (err) console.error(`Error starting SSH: ${err}`);
             res.send(`SSH opened successfully: ${stdout}`);
+
+            exec('sudo ufw reload', (err) => {
+                if (err) console.error(`Error reloading UFW: ${err}`);
+            });
         });
     });
 });
@@ -110,6 +114,10 @@ app.get('/close-ssh-tunnel', (req, res) => {
         exec(`sudo ufw allow from ${LAN_SUBNET} to any port 22 proto tcp`, (err) => {
             if (err) console.error(`Error stopping SSH: ${err}`);
             res.send(`SSH closed successfully: ${stdout}`);
+
+            exec('sudo ufw reload', (err) => {
+                if (err) console.error(`Error reloading UFW: ${err}`);
+            });
         });
     });
 });
