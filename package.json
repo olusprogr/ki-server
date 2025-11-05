@@ -4,7 +4,7 @@
   "scripts": {
     "generate-env": "node src/generate-env.js",
     "ng": "ng",
-    "start": "npm run generate-env && ng serve",
+    "start": "npm run generate-env && ng serve --host 0.0.0.0",
     "build": "npm run generate-env && ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
