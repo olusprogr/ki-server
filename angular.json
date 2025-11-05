@@ -60,7 +60,8 @@
         "serve": {
           "options": {
             "port": 3001,
-            "host": "0.0.0.0"
+            "host": "0.0.0.0",
+            "disableHostCheck": true
           },
           "builder": "@angular/build:dev-server",
           "configurations": {
