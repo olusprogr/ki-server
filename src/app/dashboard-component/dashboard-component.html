@@ -1,0 +1,17 @@
+<div class="min-h-screen bg-gray-900 text-white p-6">
+  <header class="mb-8">
+    <h1 class="text-3xl font-bold text-blue-400">Dashboard</h1>
+    <p class="text-gray-400">Welcome to your operations panel</p>
+  </header>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <a 
+      *ngFor="let op of operations"
+      [routerLink]="op.link"
+      class="bg-gray-800 hover:bg-blue-700 transition-colors rounded-lg p-6 text-center shadow-lg"
+    >
+      <h2 class="text-xl font-semibold text-blue-300">{{ op.name }}</h2>
+      <p class="text-gray-400 mt-2">Click to execute</p>
+    </a>
+  </div>
+</div>
