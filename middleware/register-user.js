@@ -16,7 +16,13 @@ module.exports = async function registerUser(req, res) {
         return res.status(500).json({ error: 'Internal server error' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    try {
+        (hashedPassword = await bcrypt.hash(password, 10));
+    } catch (error) {
+        console.error('Error hashing password:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+
     console.log(hashedPassword);
 
     // Continue with user registration logic

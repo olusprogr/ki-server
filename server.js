@@ -2,6 +2,7 @@ const userRoutes = require('./routes/test');
 const emptyRoutes = require('./routes/empty');
 const sshTunnelRoutes = require('./routes/ssh-tunnels');
 const registerUser = require('./routes/register-user');
+const validateUser = require('./routes/validate-user');
 const expressListEndpoints = require('express-list-endpoints');
 
 
@@ -22,7 +23,9 @@ app.use('/', emptyRoutes);
 app.use(API_PREFIX, userRoutes);
 app.use(API_PREFIX, sshTunnelRoutes);
 app.use(API_PREFIX, registerUser);
+app.use(API_PREFIX, validateUser);
 
+// List Registered Endpoints
 const endpoints = expressListEndpoints(app);
 console.log('Registered Endpoints:', endpoints);
 
