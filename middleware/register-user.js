@@ -62,7 +62,11 @@ module.exports = async function registerUser(req, res) {
             res.status(201).json({ message: 'User registered successfully' });
         })
         .catch((error) => {
-            console.error('Error registering user:', error);
-            res.status(500).json({ error: 'Internal server error' });
+            if (error.message === 'User already exists') {
+                res.status(409).json({ error: 'User already exists' });
+            } else {
+                console.error('Error registering user:', error);
+                res.status(500).json({ error: 'Internal server error' });
+            }
         });
 }
