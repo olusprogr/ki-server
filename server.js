@@ -4,13 +4,13 @@ const sshTunnelRoutes = require('./routes/ssh-tunnels');
 const registerUser = require('./routes/register-user');
 const validateUser = require('./routes/validate-user');
 const expressListEndpoints = require('express-list-endpoints');
-
-
-
+const MongoClient = require('mongodb');
 const express = require('express');
 require('dotenv').config();
+const dbService = require('./db-service');
 
 const app = express();
+dbService();
 
 // Configuration
 const PORT = process.env.PORT || 3004;

@@ -1,5 +1,7 @@
 const bcrypt = require('bcrypt');
 
+require('dotenv').config();
+
 module.exports = async function validateUser(req, res, next) {
     console.log('Validate User Middleware Invoked');
 
@@ -18,5 +20,4 @@ module.exports = async function validateUser(req, res, next) {
     }
 
     return res.status(200).json({ message: 'User validated successfully' });
-
 }
