@@ -2,6 +2,8 @@ require('dotenv').config();
 
 const bcrypt = require('bcrypt');
 
+const insertUserToDB = require('./register-user-db');
+
 
 module.exports = async function registerUser(req, res) {
 
@@ -55,5 +57,12 @@ module.exports = async function registerUser(req, res) {
         return res.status(400).json({ error: 'Password must contain at least one special character' });
     }
 
-
+    insertUserToDB(username, hashedPassword)
+        .then(() => {
+            res.status(201).json({ message: 'User registered successfully' });
+        })
+        .catch((error) => {
+            console.error('Error registering user:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        });
 }
