@@ -15,14 +15,14 @@ module.exports = async function registerUser(req, res) {
 
     } catch (error) {
         console.error('Error in registerUser middleware:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json({ error: 'Internal server error. 1' });
     }
 
     try {
         (hashedPassword = await bcrypt.hash(password, 10));
     } catch (error) {
         console.error('Error hashing password:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json({ error: 'Internal server error. 2' });
     }
 
     console.log(hashedPassword);
@@ -66,7 +66,7 @@ module.exports = async function registerUser(req, res) {
                 res.status(409).json({ error: 'User already exists' });
             } else {
                 console.error('Error registering user:', error);
-                res.status(500).json({ error: 'Internal server error' });
+                res.status(500).json({ error: 'Internal server error. 3' });
             }
         });
 }
