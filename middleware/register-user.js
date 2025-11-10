@@ -10,25 +10,9 @@ module.exports = async function registerUser(req, res) {
     console.log('Register User Middleware Invoked');
     console.log('Request Body:', req.body);
 
-    try {
-        ({ username, password } = req.body);
+    const { username, password } = req.body;
 
-    } catch (error) {
-        console.error('Error in registerUser middleware:', error);
-        return res.status(500).json({ error: 'Internal server error. 1' });
-    }
-
-    try {
-        (hashedPassword = await bcrypt.hash(password, 10));
-    } catch (error) {
-        console.error('Error hashing password:', error);
-        return res.status(500).json({ error: 'Internal server error. 2' });
-    }
-
-    console.log(hashedPassword);
-
-    // Continue with user registration logic
-
+    // Validierungen ZUERST (vor dem Hashen!)
     if (!username || !password) {
         return res.status(400).json({ error: 'Username and password are required' });
     }
@@ -57,17 +41,21 @@ module.exports = async function registerUser(req, res) {
         return res.status(400).json({ error: 'Password must contain at least one special character' });
     }
 
-    insertUserToDB(username, hashedPassword)
-        .then(() => {
-            res.status(201).json({ message: 'User registered successfully' });
-        })
-        .catch((error) => {
-            if (error.message === 'User already exists') {
-                console.log(`Registration failed: user "${username}" already exists`);
-                res.status(409).json({ error: 'User already exists' });
-            } else {
-                console.error('Error registering user:', error);
-                res.status(500).json({ error: 'Internal server error. 3' });
-            }
-        });
+    // JETZT erst hashen
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        console.log('Password hashed successfully');
+
+        await insertUserToDB(username, hashedPassword);
+        res.status(201).json({ message: 'User registered successfully' });
+
+    } catch (error) {
+        if (error.message === 'User already exists') {
+            console.log(`Registration failed: user "${username}" already exists`);
+            return res.status(409).json({ error: 'User already exists' });
+        }
+        
+        console.error('Error registering user:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
 }
