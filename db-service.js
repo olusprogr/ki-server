@@ -3,9 +3,12 @@ const { MongoClient } = require('mongodb');
 module.exports = async function runGetStarted() {
   // Replace the uri string with your connection string
   const uri = process.env.DB_HOST;
+  
+  console.log('Connecting to database at', uri);
+
+
   const client = new MongoClient(uri);
 
-  console.log('Connecting to database at', uri);
 
   try {
     await client.connect();
