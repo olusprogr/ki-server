@@ -5,6 +5,8 @@ module.exports = async function runGetStarted() {
   const uri = process.env.DB_HOST;
   const client = new MongoClient(uri);
 
+  console.log('Connecting to database at', uri);
+
   try {
     await client.connect();
 
