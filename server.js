@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3004;
 const HOST = process.env.HOST || '0.0.0.0';
 const API_PREFIX = process.env.API_PREFIX;
 
-const db = false;
+const db = true;
 
 async function startServer() {
   try {
