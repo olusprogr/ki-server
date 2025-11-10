@@ -6,8 +6,8 @@ module.exports = async function runGetStarted() {
   const client = new MongoClient(uri);
 
   try {
-    const database = client.db('sample_mflix');
-    const movies = database.collection('movies');
+    const database = client.db("ai-server");
+    const users = database.collection("users");
 
     // Queries for a movie that has a title value of 'Back to the Future'
     const query = { title: 'Back to the Future' };
