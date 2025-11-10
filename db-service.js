@@ -6,14 +6,23 @@ module.exports = async function runGetStarted() {
   const client = new MongoClient(uri);
 
   try {
+    await client.connect();
+
     const database = client.db("ai-server");
     const users = database.collection("users");
 
-    // Queries for a movie that has a title value of 'Back to the Future'
-    const query = { title: 'Back to the Future' };
-    const movie = await movies.findOne(query);
+    const testUser = { username: "test", password: "test" };
+    await users.insertOne(testUser);
+    console.log("User inserted");
 
-    console.log(movie);
+    const found = await users.findOne({ username: "test" });
+    console.log("User found:", found);
+
+    const result = await users.deleteOne({ username: "test" });
+    console.log(`Deleted ${result.deletedCount} user(s)`);
+
+  } catch (e) {
+    console.error(e);
   } finally {
     await client.close();
   }
