@@ -15,10 +15,15 @@ const PORT = process.env.PORT || 3004;
 const HOST = process.env.HOST || '0.0.0.0';
 const API_PREFIX = process.env.API_PREFIX;
 
+const db = false;
+
 async function startServer() {
   try {
-    const db = await dbService();
-    app.locals.db = db;
+
+    if (db) {
+      const db = await dbService();
+      app.locals.db = db;
+    }
 
     // Routen
     app.use('/', emptyRoutes);

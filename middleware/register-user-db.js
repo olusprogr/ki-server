@@ -15,8 +15,8 @@ module.exports = async function insertUserToDB(username, hashedPassword) {
 
         const userExists = await users.findOne({ username: username });
         if (userExists) {
-            throw new Error('Username already exists');
-            return { error: 'Username already exists' };
+            console.error('User already exists');
+            return;
         }
 
         const newUser = { username: username, password: hashedPassword };
