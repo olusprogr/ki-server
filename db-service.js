@@ -38,7 +38,6 @@ module.exports = async function runGetStarted() {
     process.exit(1);
   } finally {
     console.log("Closing database connection...");
-    await client.close();
     console.log("Continuing with application initialization...");
   }
 }
