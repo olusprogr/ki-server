@@ -1,11 +1,10 @@
-require('dotenv').config();
-
+const express = require('express');
+const router = express.Router();
 const bcrypt = require('bcrypt');
-
 const insertUserToDB = require('./register-user-db');
 
 
-module.exports = async function registerUser(req, res) {
+router.post('/register-user', async (req, res) => {
 
     console.log('Register User Middleware Invoked');
     console.log('Request Body:', req.body);
@@ -58,4 +57,6 @@ module.exports = async function registerUser(req, res) {
         console.error('Error registering user:', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
-}
+})
+
+module.exports = router;
