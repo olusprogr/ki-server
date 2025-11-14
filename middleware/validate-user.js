@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 module.exports = async function validateUser(req, res) {
     console.log('Validate User Middleware Invoked');
@@ -8,7 +9,7 @@ module.exports = async function validateUser(req, res) {
     if (!db) {
         return res.status(500).json({ error: 'Database connection not available' });
     }
-    
+
     const users = db.collection("users");
 
     const { username, password } = req.body;
@@ -27,5 +28,15 @@ module.exports = async function validateUser(req, res) {
         return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    return res.status(200).json({ message: 'User validated successfully' });
+    const token = jwt.sign(
+        { username: user.username, id: user._id },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+    );
+
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('Generated JWT Payload:', payload);
+    console.log(token);
+
+    res.json({ message: 'User validated successfully', token: token });
 }

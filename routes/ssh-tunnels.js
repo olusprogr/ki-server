@@ -1,23 +1,16 @@
 const express = require('express');
 const router = express.Router();
+const sshTunnelRoutes = require('../middleware/ssh-tunnel-auth');
+const rateLimit = require('express-rate-limit');
 
-router.get('/ssh-tunnels/:operationName/:value', (req, res) => {
-    const { operationName, value } = req.params;
-
-    // Validiere erlaubte Operationen
-    const validOperations = ['start', 'stop', 'restart', 'status'];
-    
-    if (!validOperations.includes(operationName)) {
-        return res.status(400).json({ 
-            error: 'Invalid operation', 
-            validOperations: validOperations 
-        });
-    }
-
-    console.log(`Operation: ${operationName}, Value: ${value}`);
-    res.json({ 
-        message: `Received operation ${operationName} with value ${value}` 
-    });
+const loginLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 2,
+    message: { error: "Too many login attempts. Try again later." },
+    standardHeaders: true,
+    legacyHeaders: false
 });
+
+router.post('/ssh-tunnel-auth/:operationName/:value', loginLimiter, sshTunnelRoutes);
 
 module.exports = router;

@@ -40,7 +40,7 @@ const HOST = process.env.HOST || '0.0.0.0';
 const API_PREFIX = process.env.API_PREFIX;
 
 const db = true;
-const local = false;
+const local = true;
 let dbConnection = null;
 
 const dbService = new DatabaseService();
