@@ -1,25 +1,53 @@
 const { MongoClient } = require('mongodb');
+require('dotenv').config();
 
-module.exports = async function runGetStarted() {
-  // Replace the uri string with your connection string
-  const uri = process.env.DB_HOST;
-  
-  console.log('Connecting to database at', uri);
+class DatabaseService {
+  constructor() {
+    this.mongoClient = null;
+    this.db = null;
+    this.uriLocal = process.env.LOCAL_DB_HOST;
+    this.uriRemote = process.env.DB_HOST;
+    this.uri = null;
+  }
 
+  setDatabase(local) {
+    this.uri = local ? this.uriLocal : this.uriRemote;
+    if (!this.uri) throw new Error('No database URI defined');
+    this.mongoClient = new MongoClient(this.uri);
+  }
 
-  const client = new MongoClient(uri);
+  getDatabase() {
+    return this.db;
+  }
 
+  async connect() {
+    if (!this.mongoClient) {
+      throw new Error('MongoClient not initialized. Call setDatabase() first.');
+    }
 
-  try {
+    try {
+      await this.mongoClient.connect();
+      this.db = this.mongoClient.db("ai-server");
+      console.log('Connected to database successfully');
+      return this.db;
+    } catch (error) {
+      console.error('Error connecting to database:', error);
+      throw error;
+    }
+  }
 
-    console.log('Connecting to MongoDB...');
+  async close() {
+    if (this.mongoClient) {
+      await this.mongoClient.close();
+      console.log("Database connection closed.");
+    }
+  }
 
-    await client.connect();
+  async runDatabaseTest() {
+    if (!this.db) throw new Error('Database not initialized. Call connect() first.');
 
-    const database = client.db("ai-server");
-    const users = database.collection("users");
-
-    console.log("Running unit test operations...");
+    const users = this.db.collection("users");
+    console.log("Running test operations...");
 
     const testUser = { username: "test", password: "test" };
     await users.insertOne(testUser);
@@ -31,13 +59,8 @@ module.exports = async function runGetStarted() {
     const result = await users.deleteOne({ username: "test" });
     console.log(`Deleted ${result.deletedCount} user(s)`);
 
-    console.log("Unit test operations completed successfully.");
-
-  } catch (e) {
-    console.error(e);
-    process.exit(1);
-  } finally {
-    console.log("Closing database connection...");
-    console.log("Continuing with application initialization...");
+    console.log("Database test completed successfully.");
   }
 }
+
+module.exports = DatabaseService;

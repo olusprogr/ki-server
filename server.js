@@ -1,33 +1,68 @@
 const express = require('express');
 const expressListEndpoints = require('express-list-endpoints');
 require('dotenv').config();
-const dbService = require('./db-service');
-const userRoutes = require('./routes/test');
+const DatabaseService = require('./db-service');
+const testRoutes = require('./routes/test');
 const emptyRoutes = require('./routes/empty');
 const sshTunnelRoutes = require('./routes/ssh-tunnels');
 const registerUser = require('./routes/register-user');
 const validateUser = require('./routes/validate-user');
 
+console.log('testRoutes type:', typeof testRoutes);
+console.log('emptyRoutes type:', typeof emptyRoutes);
+console.log('sshTunnelRoutes type:', typeof sshTunnelRoutes);
+console.log('registerUser type:', typeof registerUser);
+console.log('validateUser type:', typeof validateUser);
+
 const app = express();
+
+// Debug Middleware VOR express.json()
+app.use((req, res, next) => {
+  console.log('=== Incoming Request (BEFORE json) ===');
+  console.log('Method:', req.method);
+  console.log('URL:', req.url);
+  console.log('Content-Type:', req.headers['content-type']);
+  console.log('Body:', req.body);
+  next();
+});
+
 app.use(express.json());
+
+// Debug Middleware NACH express.json()
+app.use((req, res, next) => {
+  console.log('=== After JSON Middleware ===');
+  console.log('Body:', req.body);
+  next();
+});
 
 const PORT = process.env.PORT || 3004;
 const HOST = process.env.HOST || '0.0.0.0';
 const API_PREFIX = process.env.API_PREFIX;
 
 const db = true;
+const local = false;
+let dbConnection = null;
+
+const dbService = new DatabaseService();
 
 async function startServer() {
   try {
 
     if (db) {
-      const db = await dbService();
-      app.locals.db = db;
+      if (local) {
+        dbService.setDatabase(true);
+        dbConnection = await dbService.connect();
+      } else {
+        dbService.setDatabase(false);
+        dbConnection = await dbService.connect();
+      }
     }
+
+    app.locals.dbService = dbConnection;
 
     // Routen
     app.use('/', emptyRoutes);
-    app.use(API_PREFIX, userRoutes);
+    app.use(API_PREFIX, testRoutes);
     app.use(API_PREFIX, sshTunnelRoutes);
     app.use(API_PREFIX, registerUser);
     app.use(API_PREFIX, validateUser);
@@ -42,7 +77,7 @@ async function startServer() {
 
   } catch (err) {
     console.error("Failed to start server:", err);
-    process.exit(1); // optional: Beende Server bei DB-Fehler
+    process.exit(1);
   }
 }
 

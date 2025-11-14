@@ -1,17 +1,14 @@
-const express = require('express');
-const router = express.Router();
+// middleware/register-user.js
 const bcrypt = require('bcrypt');
 const insertUserToDB = require('./register-user-db');
 
-
-router.post('/register-user', async (req, res) => {
-
+async function registerUser(req, res) {
     console.log('Register User Middleware Invoked');
     console.log('Request Body:', req.body);
 
     const { username, password } = req.body;
 
-    // Validierungen ZUERST (vor dem Hashen!)
+    // Validierungen
     if (!username || !password) {
         return res.status(400).json({ error: 'Username and password are required' });
     }
@@ -40,13 +37,13 @@ router.post('/register-user', async (req, res) => {
         return res.status(400).json({ error: 'Password must contain at least one special character' });
     }
 
-    // JETZT erst hashen
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         console.log('Password hashed successfully');
 
-        await insertUserToDB(username, hashedPassword);
-        res.status(201).json({ message: 'User registered successfully' });
+        const db = req.app.locals.dbService;
+        await insertUserToDB(db, username, hashedPassword);
+        res.status(201).json({ message: 'User registered successfully' })
 
     } catch (error) {
         if (error.message === 'User already exists') {
@@ -57,6 +54,6 @@ router.post('/register-user', async (req, res) => {
         console.error('Error registering user:', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
-})
+}
 
-module.exports = router;
+module.exports = registerUser;

@@ -1,4 +1,4 @@
-module.exports = async function insertUserToDB(db, username, hashedPassword) {
+module.exports = async function validateUserFromDB(db, username, password) {
 
     if (!db) {
         throw new Error('Database not available');

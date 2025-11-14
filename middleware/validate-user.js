@@ -1,17 +1,25 @@
 const bcrypt = require('bcrypt');
 
-require('dotenv').config();
-
-module.exports = async function validateUser(req, res, next) {
+module.exports = async function validateUser(req, res) {
     console.log('Validate User Middleware Invoked');
 
-    const storedHashedPassword = "$2b$10$XTZeqKRiiPt9PB.gh44caOnPXvkcaOg828K7/krsa3Jxl3UaKK1mu"; // Example hashed password
+    const db = req.app.locals.dbService;
+
+    if (!db) {
+        return res.status(500).json({ error: 'Database connection not available' });
+    }
+    
+    const users = db.collection("users");
 
     const { username, password } = req.body;
 
-    if (!username || !password) {
-        return res.status(400).json({ error: 'Username and password are required' });
+    const user = await users.findOne({ username: username });
+
+    if (!user) {
+        return res.status(404).json({ error: 'User not found' });
     }
+
+    const storedHashedPassword = user.password;
 
     const isMatch = await bcrypt.compare(password, storedHashedPassword);
 
