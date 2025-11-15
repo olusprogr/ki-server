@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component  } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../env';
 import { Router } from '@angular/router';
+import { ApiService } from '../api-service';
 
 @Component({
   selector: 'app-login-component',
@@ -18,23 +19,24 @@ export class LoginComponent {
   inputPassword: string = '';
 
   username: string = environment.API_KEY;
-
-
+  backEndResponse: string | null = null;
 
   constructor(
-    private router: Router
+    private router: Router,
+    private apiService: ApiService
   ) {
-
+    this.apiService.testConnection().subscribe({
+      next: (response) => {
+        console.log('API-Verbindung erfolgreich');
+        this.backEndResponse = JSON.stringify(response);
+      },
+      error: (error) => {
+        console.error('API-Verbindung fehlgeschlagen:', error);
+      }
+    });
   }
 
-  onSubmit() {
-    console.log('Username:', this.inputUsername);
-    console.log('Password:', this.inputPassword);
-
-    console.log('Username from environment:', this.username);
-
-    console.log(typeof this.inputUsername);
-
+  public onSubmit(): void {
     if (this.inputUsername === '' || this.inputPassword === '') {
       alert("Bitte geben Sie einen Benutzernamen und ein Passwort ein.");
       return;
@@ -45,11 +47,16 @@ export class LoginComponent {
       return;
     }
 
-    if (this.inputUsername === "test1" && this.inputPassword === "test1") {
-      alert("Login erfolgreich!");
-      this.router.navigate(['/dashboard']);
-    } else {
-      alert("Ungültiger Benutzername oder Passwort.");
-    }
+    const credentials = { username: this.inputUsername, password: this.inputPassword };
+
+    this.apiService.logIn(credentials).subscribe({
+      next: (response) => {
+        localStorage.setItem('authToken', response.token);
+        this.router.navigate(['/dashboard']);
+      },
+      error: (error) => {
+        alert("Ungültiger Benutzername oder Passwort.");
+      }
+    });
   }
 }

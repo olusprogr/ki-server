@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 
 
 @Component({
@@ -19,4 +19,13 @@ export class DashboardComponent {
     { name: 'Operation 3', link: '/op3' },
     { name: 'Operation 4', link: '/op4' },
   ];
+
+  constructor(
+    private router: Router
+  ) {
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      this.router.navigate(['/login']);
+    }
+  }
 }
