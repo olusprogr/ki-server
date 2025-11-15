@@ -7,6 +7,7 @@ const emptyRoutes = require('./routes/empty');
 const sshTunnelRoutes = require('./routes/ssh-tunnels');
 const registerUser = require('./routes/register-user');
 const validateUser = require('./routes/validate-user');
+const cors = require('cors');
 
 console.log('testRoutes type:', typeof testRoutes);
 console.log('emptyRoutes type:', typeof emptyRoutes);
@@ -15,6 +16,13 @@ console.log('registerUser type:', typeof registerUser);
 console.log('validateUser type:', typeof validateUser);
 
 const app = express();
+
+app.use(cors({
+  origin: ['http://localhost:3001', 'https://olusprogr.dynv6.net'],
+  methods: ['GET','POST','PUT','DELETE'],
+  credentials: true
+}));
+
 
 // Debug Middleware VOR express.json()
 app.use((req, res, next) => {
@@ -40,7 +48,7 @@ const HOST = process.env.HOST || '0.0.0.0';
 const API_PREFIX = process.env.API_PREFIX;
 
 const db = true;
-const local = false;
+const local = true;
 let dbConnection = null;
 
 const dbService = new DatabaseService();
