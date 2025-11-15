@@ -18,7 +18,7 @@ console.log('validateUser type:', typeof validateUser);
 const app = express();
 
 app.use(cors({
-  origin: true,
+  origin: ['http://localhost:3001'],
   methods: ['GET','POST','PUT','DELETE'],
   credentials: true
 }));
