@@ -18,7 +18,10 @@ console.log('validateUser type:', typeof validateUser);
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:3001'],
+  origin: [
+    'http://localhost:3001',
+    'https://olusprogr.dynv6.net'
+  ],
   methods: ['GET','POST','PUT','DELETE'],
   credentials: true
 }));
