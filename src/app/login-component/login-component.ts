@@ -28,6 +28,7 @@ export class LoginComponent {
     this.apiService.testConnection().subscribe({
       next: (response) => {
         console.log('API-Verbindung erfolgreich');
+        console.log(response);
         this.backEndResponse = JSON.stringify(response);
       },
       error: (error) => {
