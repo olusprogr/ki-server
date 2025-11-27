@@ -8,6 +8,7 @@ const sshTunnelRoutes = require('./routes/ssh-tunnels');
 const registerUser = require('./routes/register-user');
 const validateUser = require('./routes/validate-user');
 const validateAuthToken = require('./routes/validate-authToken');
+const AvailableDevicesInLocalNetwork = require('./routes/devices-local-network');
 const cors = require('cors');
 
 console.log('testRoutes type:', typeof testRoutes);
@@ -16,6 +17,8 @@ console.log('sshTunnelRoutes type:', typeof sshTunnelRoutes);
 console.log('registerUser type:', typeof registerUser);
 console.log('validateUser type:', typeof validateUser);
 console.log('validateAuthToken type:', typeof validateAuthToken);
+console.log('AvailableDevicesInLocalNetwork type:', typeof AvailableDevicesInLocalNetwork);
+
 
 
 const app = express();
@@ -81,6 +84,7 @@ async function startServer() {
     app.use(API_PREFIX, registerUser);
     app.use(API_PREFIX, validateUser);
     app.use(API_PREFIX, validateAuthToken);
+    app.use(API_PREFIX, AvailableDevicesInLocalNetwork);
 
     // Liste der Endpoints
     console.log('Registered Endpoints:', expressListEndpoints(app));
