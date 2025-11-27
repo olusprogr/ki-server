@@ -33,6 +33,30 @@ export class LoginComponent {
       },
       error: (error) => {
         console.error('API-Verbindung fehlgeschlagen:', error);
+      },
+      complete: () => {
+        console.log('API-Verbindungstest abgeschlossen');
+        const authToken = localStorage.getItem('authToken');
+        if (authToken) {
+          this.loginWithToken(authToken);
+        }
+      }
+    });
+  }
+
+  public loginWithToken(token: string): void {
+    this.apiService.loginWithToken(token).subscribe({
+      next: (response) => {
+        if (response.pass) {
+          this.router.navigate(['/dashboard']);
+          console.log("Automatisch mit Token eingeloggt.");
+        } else {
+          alert("Ungültiger Token.");
+          console.log("Token ungültig.");
+        }
+      },
+      error: (error) => {
+        alert("Ungültiger Token.");
       }
     });
   }
@@ -52,8 +76,12 @@ export class LoginComponent {
 
     this.apiService.logIn(credentials).subscribe({
       next: (response) => {
-        localStorage.setItem('authToken', response.token);
-        this.router.navigate(['/dashboard']);
+        if (response.token) {
+          localStorage.setItem('authToken', response.token);
+          this.router.navigate(['/dashboard']);
+        } else {
+          alert("Ungültiger Benutzername oder Passwort.");
+        }
       },
       error: (error) => {
         alert("Ungültiger Benutzername oder Passwort.");

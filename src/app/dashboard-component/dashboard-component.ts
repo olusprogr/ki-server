@@ -28,4 +28,9 @@ export class DashboardComponent {
       this.router.navigate(['/login']);
     }
   }
+
+  public logOut(): void {
+    localStorage.removeItem('authToken');
+    this.router.navigate(['/login']);
+  }
 }
