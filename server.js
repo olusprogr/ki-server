@@ -7,6 +7,7 @@ const emptyRoutes = require('./routes/empty');
 const sshTunnelRoutes = require('./routes/ssh-tunnels');
 const registerUser = require('./routes/register-user');
 const validateUser = require('./routes/validate-user');
+const validateAuthToken = require('./routes/validate-authToken');
 const cors = require('cors');
 
 console.log('testRoutes type:', typeof testRoutes);
@@ -14,6 +15,8 @@ console.log('emptyRoutes type:', typeof emptyRoutes);
 console.log('sshTunnelRoutes type:', typeof sshTunnelRoutes);
 console.log('registerUser type:', typeof registerUser);
 console.log('validateUser type:', typeof validateUser);
+console.log('validateAuthToken type:', typeof validateAuthToken);
+
 
 const app = express();
 
@@ -51,7 +54,7 @@ const HOST = process.env.HOST || '0.0.0.0';
 const API_PREFIX = process.env.API_PREFIX;
 
 const db = true;
-const local = false;
+const local = true;
 let dbConnection = null;
 
 const dbService = new DatabaseService();
@@ -77,6 +80,7 @@ async function startServer() {
     app.use(API_PREFIX, sshTunnelRoutes);
     app.use(API_PREFIX, registerUser);
     app.use(API_PREFIX, validateUser);
+    app.use(API_PREFIX, validateAuthToken);
 
     // Liste der Endpoints
     console.log('Registered Endpoints:', expressListEndpoints(app));
