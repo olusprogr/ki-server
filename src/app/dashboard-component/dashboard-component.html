@@ -5,7 +5,6 @@
       <p class="text-gray-400">Welcome to your operations panel</p>
     </div>
 
-    <!-- Logout Button -->
     <button 
       (click)="this.logOut()" 
       class="bg-red-600 hover:bg-red-700 transition-colors px-4 py-2 rounded-lg shadow"
@@ -17,11 +16,13 @@
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
     <a 
       *ngFor="let op of operations"
-      [routerLink]="op.link"
+      (click)="navigateToDevice(op)"
       class="bg-gray-800 hover:bg-blue-700 transition-colors rounded-lg p-6 text-center shadow-lg"
     >
-      <h2 class="text-xl font-semibold text-blue-300">{{ op.name }}</h2>
-      <p class="text-gray-400 mt-2">Click to execute</p>
+      <h2 class="text-xl font-semibold text-blue-300">{{ op.deviceName }}</h2>
+      <p *ngIf="op.ipv4" class="text-gray-400 mt-2">{{ op.ipv4 }}</p>
+      <p *ngIf="op.status === 'Online'" class="text-lime-400 mt-2">{{ op.status }} ✅</p>
+      <p *ngIf="op.status === 'Offline'" class="text-red-400 mt-2">{{ op.status }} ❌</p>
     </a>
   </div>
 </div>

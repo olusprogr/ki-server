@@ -61,6 +61,7 @@ For more information on using the Angular CLI, including detailed command refere
 
 ## Move and Deploy
 ```bash
+ng build
 ssh root@192.168.178.211 "rm -rf /var/www/login-page/*"
 scp -r dist/ki-server-new/* root@192.168.178.211:/var/www/login-page/
 ```

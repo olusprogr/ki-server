@@ -28,4 +28,8 @@ export class ApiService {
 
     return this.http.post(`${this.apiUrl}/validate-authToken`, {}, { headers });
   }
+
+  public testAvailableDevicesOnLocalNetwork(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/ping-available-devices-in-local-network`);
+  }
 }

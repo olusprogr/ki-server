@@ -57,6 +57,8 @@ export class LoginComponent {
       },
       error: (error) => {
         alert("Ungültiger Token.");
+        console.log("Token ungültig.2");
+        console.error(error);
       }
     });
   }
