@@ -1,9 +1,7 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const { exec } = require('child_process');
-const { response } = require('express');
-const e = require('express');
-
+const path = require('path');
 
 module.exports = async function sshTunnelAuth(req, res) {
     console.log('SSH Tunnel Auth Middleware Invoked');
@@ -80,47 +78,28 @@ module.exports = async function sshTunnelAuth(req, res) {
 }
 
 function openSSHTunnelCommand() {
-    exec(`../commands/open-ssh-tunnel.sh`, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error executing SSH tunnel command: ${error.message}`);
-            return error;
-        }
-        if (stderr) {
-            console.error(`SSH tunnel stderr: ${stderr}`);
-            return stderr;
-        }
-        console.log(`SSH tunnel stdout: ${stdout}`);
-        return stdout;
+    const scriptPath = path.join(__dirname, '../commands/open-ssh-tunnel.sh');
+    exec(`bash ${scriptPath}`, (error, stdout, stderr) => {
+        if (error) return console.error(`Error executing SSH tunnel command: ${error.message}`);
+        if (stderr) console.error(`SSH tunnel stderr: ${stderr}`);
+        if (stdout) console.log(`SSH tunnel stdout: ${stdout}`);
     });
 }
 
-
 function closeSSHTunnelCommand() {
-    exec(`../commands/close-ssh-tunnel.sh`, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error executing SSH tunnel close command: ${error.message}`);
-            return error;
-        }
-        if (stderr) {
-            console.error(`SSH tunnel close stderr: ${stderr}`);
-            return stderr;
-        }
-        console.log(`SSH tunnel close stdout: ${stdout}`);
-        return stdout;
+    const scriptPath = path.join(__dirname, '../commands/close-ssh-tunnel.sh');
+    exec(`bash ${scriptPath}`, (error, stdout, stderr) => {
+        if (error) return console.error(`Error executing SSH tunnel close command: ${error.message}`);
+        if (stderr) console.error(`SSH tunnel close stderr: ${stderr}`);
+        if (stdout) console.log(`SSH tunnel close stdout: ${stdout}`);
     });
 }
 
 function checkSSHTunnelStatus() {
-    exec(`../commands/check-ssh-tunnel.sh`, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error checking SSH tunnel status: ${error.message}`);
-            return error;
-        }
-        if (stderr) {
-            console.error(`SSH tunnel status stderr: ${stderr}`);
-            return stderr;
-        }
-        console.log(`SSH tunnel status stdout: ${stdout}`);
-        return stdout;
+    const scriptPath = path.join(__dirname, '../commands/check-ssh-tunnel.sh');
+    exec(`bash ${scriptPath}`, (error, stdout, stderr) => {
+        if (error) return console.error(`Error checking SSH tunnel status: ${error.message}`);
+        if (stderr) console.error(`SSH tunnel status stderr: ${stderr}`);
+        if (stdout) console.log(`SSH tunnel status stdout: ${stdout}`);
     });
 }
