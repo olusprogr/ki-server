@@ -94,6 +94,7 @@ function openSSHTunnelCommand() {
     });
 }
 
+
 function closeSSHTunnelCommand() {
     exec(`../commands/close-ssh-tunnel.sh`, (error, stdout, stderr) => {
         if (error) {
