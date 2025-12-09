@@ -1,9 +1,11 @@
-const express = require('express');
-const router = express.Router();
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
+const { exec } = require('child_process');
+const { response } = require('express');
+const e = require('express');
 
-module.exports = async function validateUser(req, res) {
+
+module.exports = async function sshTunnelAuth(req, res) {
     console.log('SSH Tunnel Auth Middleware Invoked');
 
     const dbService = req.app.locals.dbService;
@@ -11,11 +13,13 @@ module.exports = async function validateUser(req, res) {
 
     const { operationName, value } = req.params;
 
-    const { admin_key, jwtToken } = req.body;
+    // const { admin_key } = req.body;
 
-    if (admin_key !== process.env.ADMIN_KEY) {
-        return res.status(403).json({ error: 'Invalid admin key' });
-    }
+    // if (admin_key !== process.env.ADMIN_KEY) {
+    //     return res.status(403).json({ error: 'Invalid admin key' });
+    // }
+
+    const jwtToken = req.headers.authorization;
 
     if (!jwtToken) {
         return res.status(401).json({ error: 'JWT token is required' });
@@ -46,8 +50,6 @@ module.exports = async function validateUser(req, res) {
         return res.status(404).json({ error: 'User not found' });
     }
 
-    console.log('JWT Payload:', payload);
-
     const validOperations = ['start', 'stop', 'restart', 'status'];
     
     if (!validOperations.includes(operationName)) {
@@ -57,8 +59,67 @@ module.exports = async function validateUser(req, res) {
         });
     }
 
+    let response = null;
+
+    if (operationName === 'start') {
+        response = openSSHTunnelCommand();
+    } else if (operationName === 'stop') {
+        response = closeSSHTunnelCommand();
+    } else if (operationName === 'restart') {
+        response = closeSSHTunnelCommand();
+        response = openSSHTunnelCommand();
+    } else {
+        response = checkSSHTunnelStatus();
+    }
+
     console.log(`Operation: ${operationName}, Value: ${value}`);
     res.json({ 
-        message: `Received operation ${operationName} with value ${value}` 
+        message: `Received operation ${operationName} with value ${value}`,
+        response: response
+    });
+}
+
+function openSSHTunnelCommand() {
+    exec(`../commands/open-ssh-tunnel.sh`, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error executing SSH tunnel command: ${error.message}`);
+            return error;
+        }
+        if (stderr) {
+            console.error(`SSH tunnel stderr: ${stderr}`);
+            return stderr;
+        }
+        console.log(`SSH tunnel stdout: ${stdout}`);
+        return stdout;
+    });
+}
+
+function closeSSHTunnelCommand() {
+    exec(`../commands/close-ssh-tunnel.sh`, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error executing SSH tunnel close command: ${error.message}`);
+            return error;
+        }
+        if (stderr) {
+            console.error(`SSH tunnel close stderr: ${stderr}`);
+            return stderr;
+        }
+        console.log(`SSH tunnel close stdout: ${stdout}`);
+        return stdout;
+    });
+}
+
+function checkSSHTunnelStatus() {
+    exec(`../commands/check-ssh-tunnel.sh`, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error checking SSH tunnel status: ${error.message}`);
+            return error;
+        }
+        if (stderr) {
+            console.error(`SSH tunnel status stderr: ${stderr}`);
+            return stderr;
+        }
+        console.log(`SSH tunnel status stdout: ${stdout}`);
+        return stdout;
     });
 }

@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 module.exports = async function validateAuthToken(req, res) {
     console.log('Validate Auth Token Middleware Invoked');
 
-    // 2. Token aus Header holen
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ error: 'Missing Authorization header' });
     console.log('Authorization Header:', authHeader);

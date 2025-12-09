@@ -11,6 +11,6 @@ const loginLimiter = rateLimit({
     legacyHeaders: false
 });
 
-router.post('/ssh-tunnel-auth/:operationName/:value', loginLimiter, sshTunnelRoutes);
+router.post('/ssh-tunnel-auth/:operationName', loginLimiter, sshTunnelRoutes);
 
 module.exports = router;
