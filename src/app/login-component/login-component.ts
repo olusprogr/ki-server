@@ -37,6 +37,7 @@ export class LoginComponent {
       complete: () => {
         console.log('API-Verbindungstest abgeschlossen');
         const authToken = localStorage.getItem('authToken');
+        console.log('Gefundener Auth-Token:', authToken);
         if (authToken) {
           this.loginWithToken(authToken);
         }
@@ -56,8 +57,7 @@ export class LoginComponent {
         }
       },
       error: (error) => {
-        alert("Ungültiger Token.");
-        console.log("Token ungültig.2");
+        alert(JSON.stringify(error.error.error) || "Ungültiger Token.");
         console.error(error);
       }
     });

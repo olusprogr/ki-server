@@ -32,4 +32,12 @@ export class ApiService {
   public testAvailableDevicesOnLocalNetwork(): Observable<any> {
     return this.http.get(`${this.apiUrl}/ping-available-devices-in-local-network`);
   }
+
+  public sendSSHCommandToDevice(command: string, token: string): Observable<any> {
+    const headers = new HttpHeaders({
+      Authorization: token
+    });
+
+    return this.http.post(`${this.apiUrl}/ssh-tunnel-auth/${command}`, { command }, { headers });
+  }
 }
