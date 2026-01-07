@@ -1,9 +1,9 @@
 import { Component  } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { environment } from '../../env';
 import { Router } from '@angular/router';
 import { ApiService } from '../api-service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-login-component',
@@ -18,13 +18,19 @@ export class LoginComponent {
   inputUsername: string = '';
   inputPassword: string = '';
 
-  username: string = environment.API_KEY;
   backEndResponse: string | null = null;
+
+  bypassLogin: boolean = environment.bypassLogin || false;
 
   constructor(
     private router: Router,
     private apiService: ApiService
   ) {
+    if (this.bypassLogin) {
+      this.router.navigate(['/dashboard']);
+      return;
+    }
+
     this.apiService.testConnection().subscribe({
       next: (response) => {
         console.log('API-Verbindung erfolgreich');
