@@ -2,7 +2,6 @@
   <div class="flex gap-2 mb-3">
     <button *ngFor="let op of validOperations" (click)="sendOperation(op)" class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-500 shadow-md transition">{{ op | titlecase }}</button>
   </div>
-  
 
   <div class="bg-linear-to-r from-blue-900 to-slate-800 rounded-t-lg p-4 shadow-lg border-b-2 border-cyan-500">
     <div class="flex justify-between items-center">
