@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  API_KEY: 'test',
+  API_KEY: '',
   VAR_A: '',
   VAR_B: ''
 };

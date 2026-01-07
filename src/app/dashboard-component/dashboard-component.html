@@ -1,28 +1,155 @@
-<div class="min-h-screen bg-gray-900 text-white p-6">
-  <header class="mb-8 flex items-center justify-between">
-    <div>
-      <h1 class="text-3xl font-bold text-blue-400">Dashboard</h1>
-      <p class="text-gray-400">Welcome to your operations panel</p>
+<div class="flex min-h-screen bg-gray-100 text-gray-800">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white shadow-md p-6">
+    <h2 class="text-xl font-bold mb-8">Dashboard</h2>
+
+    <nav class="space-y-6">
+
+      <!-- Main -->
+      <div>
+        <h3 class="text-gray-500 text-sm uppercase mb-2">Main</h3>
+        <ul class="space-y-2">
+          <li><a class="block p-2 rounded hover:bg-gray-100 font-medium">Dashboard</a></li>
+          <li><a class="block p-2 rounded hover:bg-gray-100">Analytics</a></li>
+          <li><a class="block p-2 rounded hover:bg-gray-100">Inventory</a></li>
+          <li><a class="block p-2 rounded hover:bg-gray-100">Enquiries</a></li>
+          <li><a class="block p-2 rounded hover:bg-gray-100">Calendar</a></li>
+        </ul>
+      </div>
+
+      <!-- Products -->
+      <div>
+        <h3 class="text-gray-500 text-sm uppercase mb-2">Products</h3>
+        <ul class="space-y-2">
+          <li><a class="block p-2 rounded hover:bg-gray-100">Add Product</a></li>
+          <li><a class="block p-2 rounded hover:bg-gray-100">View Products</a></li>
+        </ul>
+      </div>
+
+      <!-- Misc -->
+      <div>
+        <h3 class="text-gray-500 text-sm uppercase mb-2">Misc</h3>
+        <ul class="space-y-2">
+          <li><a class="block p-2 rounded hover:bg-gray-100">Notices</a></li>
+          <li><a class="block p-2 rounded hover:bg-gray-100">Controls</a></li>
+          <li><a class="block p-2 rounded hover:bg-gray-100">Settings</a></li>
+        </ul>
+      </div>
+
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-10">
+
+    <!-- HEADER -->
+    <header class="mb-8 flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-black">Dashboard</h1>
+        <p class="text-gray-500">Welcome to your operations panel</p>
+      </div>
+
+      <button 
+        (click)="this.logOut()" 
+        class="bg-white hover:bg-gray-100 transition-colors px-4 py-2 rounded-lg shadow text-red-500 font-bold"
+      >
+        Logout
+      </button>
+    </header>
+
+    <!-- OPERATIONS GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <a 
+        *ngFor="let op of operations"
+        (click)="navigateToDevice(op)"
+        class="bg-white hover:bg-gray-100 transition-colors rounded-lg p-6 text-center shadow cursor-pointer text-white"
+      >
+        <h2 class="text-xl font-semibold text-blue-500">{{ op.deviceName }}</h2>
+        <p *ngIf="op.ipv4" class="text-gray-400 mt-2">{{ op.ipv4 }}</p>
+        <p *ngIf="op.status === 'Online'" class="text-lime-400 mt-2">{{ op.status }} ✅</p>
+        <p *ngIf="op.status === 'Offline'" class="text-red-400 mt-2">{{ op.status }} ❌</p>
+      </a>
     </div>
 
-    <button 
-      (click)="this.logOut()" 
-      class="bg-red-600 hover:bg-red-700 transition-colors px-4 py-2 rounded-lg shadow"
-    >
-      Logout
-    </button>
-  </header>
+    <!-- ANALYTICS SECTION -->
+    <h2 class="text-2xl font-bold mb-6">Analytics Overview</h2>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    <a 
-      *ngFor="let op of operations"
-      (click)="navigateToDevice(op)"
-      class="bg-gray-800 hover:bg-blue-700 transition-colors rounded-lg p-6 text-center shadow-lg"
-    >
-      <h2 class="text-xl font-semibold text-blue-300">{{ op.deviceName }}</h2>
-      <p *ngIf="op.ipv4" class="text-gray-400 mt-2">{{ op.ipv4 }}</p>
-      <p *ngIf="op.status === 'Online'" class="text-lime-400 mt-2">{{ op.status }} ✅</p>
-      <p *ngIf="op.status === 'Offline'" class="text-red-400 mt-2">{{ op.status }} ❌</p>
-    </a>
-  </div>
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+
+      <div class="bg-white p-6 rounded-lg shadow">
+        <p class="text-gray-500 text-sm">Products Sold</p>
+        <p class="text-3xl font-bold">237</p>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow">
+        <p class="text-gray-500 text-sm">Product Reviews</p>
+        <p class="text-3xl font-bold">177</p>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow">
+        <p class="text-gray-500 text-sm">New Enquiries</p>
+        <p class="text-3xl font-bold">31</p>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow">
+        <p class="text-gray-500 text-sm">Product Views</p>
+        <p class="text-3xl font-bold">1,653</p>
+      </div>
+
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+
+      <!-- Recent Sales -->
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-lg font-semibold mb-4">Recent Sales</h2>
+        <div class="h-48 bg-gray-100 rounded flex items-center justify-center text-gray-400">
+          Chart Placeholder
+        </div>
+      </div>
+
+      <!-- Recent Reviews -->
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-lg font-semibold mb-4">Recent Reviews</h2>
+        <div class="h-48 bg-gray-100 rounded flex items-center justify-center text-gray-400">
+          Chart Placeholder
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-lg font-semibold mb-4">Recent Transactions</h2>
+
+      <ul class="divide-y">
+
+        <li class="py-3 flex justify-between">
+          <span>Trent Murphy — Product 1</span>
+          <span class="font-semibold">$25.00</span>
+        </li>
+
+        <li class="py-3 flex justify-between">
+          <span>Joseph Bront — Product 34</span>
+          <span class="font-semibold">$74.99</span>
+        </li>
+
+        <li class="py-3 flex justify-between">
+          <span>Jacob Bator — Product 23</span>
+          <span class="font-semibold">$14.95</span>
+        </li>
+
+        <li class="py-3 flex justify-between">
+          <span>Alex Mason — Product 66</span>
+          <span class="font-semibold">$44.99</span>
+        </li>
+
+      </ul>
+    </div>
+
+  </main>
+
 </div>

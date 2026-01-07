@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ApiService } from '../api-service';
 import { FormsModule } from '@angular/forms';
+import { environment } from '../../environments/environment';
 
 
 @Component({
@@ -56,8 +57,10 @@ export class DashboardComponent {
 
 
     const authToken = localStorage.getItem('authToken');
-    if (!authToken) {
-      this.router.navigate(['/login']);
+    if (!environment.bypassLogin) {
+      if (!authToken) {
+        this.router.navigate(['/login']);
+      }
     }
   }
 
@@ -85,3 +88,4 @@ export class DashboardComponent {
     this.router.navigate(['/dashboard', op.link, op.ipv4]);
   }
 }
+
