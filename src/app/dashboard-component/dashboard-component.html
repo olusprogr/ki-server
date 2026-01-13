@@ -55,16 +55,16 @@
     </header>
 
     <!-- OPERATIONS GRID -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-12">
       <a 
-        *ngFor="let op of operations"
+        *ngFor="let op of responses"
         (click)="navigateToDevice(op)"
         class="bg-white hover:bg-gray-100 transition-colors rounded-lg p-6 text-center shadow cursor-pointer text-white"
       >
-        <h2 class="text-xl font-semibold text-blue-500">{{ op.deviceName }}</h2>
-        <p *ngIf="op.ipv4" class="text-gray-400 mt-2">{{ op.ipv4 }}</p>
-        <p *ngIf="op.status === 'Online'" class="text-lime-400 mt-2">{{ op.status }} ✅</p>
-        <p *ngIf="op.status === 'Offline'" class="text-red-400 mt-2">{{ op.status }} ❌</p>
+        <h2 class="text-xl font-semibold text-blue-500">{{ op.name }}</h2>
+        <p *ngIf="op.ip" class="text-gray-400 mt-2">{{ op.ip }}</p>
+        <p *ngIf="op.alive" class="text-lime-400 mt-2">Online ✅</p>
+        <p *ngIf="!op.alive" class="text-red-400 mt-2">Offline ❌</p>
       </a>
     </div>
 

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../environments/environment';
+import { UiDevice } from './dashboard-component/device.model';
 
 @Injectable({
   providedIn: 'root',
@@ -29,8 +30,8 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/validate-authToken`, {}, { headers });
   }
 
-  public testAvailableDevicesOnLocalNetwork(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/ping-available-devices-in-local-network`);
+  public testAvailableDevicesOnLocalNetwork(): Observable<UiDevice[]> {
+    return this.http.get<UiDevice[]>(`${this.apiUrl}/ping-available-devices-in-local-network`);
   }
 
   public sendSSHCommandToDevice(command: string, token: string): Observable<any> {
