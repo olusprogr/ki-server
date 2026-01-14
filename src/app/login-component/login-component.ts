@@ -75,8 +75,8 @@ export class LoginComponent {
       return;
     }
 
-    if (this.inputUsername.length < 5 || this.inputPassword.length < 5) {
-      alert("Benutzername und Passwort müssen mindestens 5 Zeichen lang sein.");
+    if (this.inputUsername.length < 4 || this.inputPassword.length < 5) {
+      alert("Benutzername und Passwort müssen mindestens 4 bzw. 5 Zeichen lang sein.");
       return;
     }
 

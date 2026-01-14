@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ApiService } from '../api-service';
 import { FormsModule } from '@angular/forms';
@@ -20,12 +20,18 @@ import { UiDevice } from './device.model';
 export class DashboardComponent {
   responses: UiDevice[] = [];
   availableDevicesInNetwork: number = 0;
+  menuOpen: boolean = false;
+  isMobile = window.innerWidth < 1024;
+
 
   constructor(
     private router: Router,
     private apiService: ApiService,
     public route: ActivatedRoute
   ) {
+    // Initial: Menü ist nur auf Desktop offen
+    this.menuOpen = !this.isMobile;
+    
     this.testAvailableDevicesOnLocalNetwork()
 
     const authToken = localStorage.getItem('authToken');
@@ -60,6 +66,35 @@ export class DashboardComponent {
         console.log('API-Verbindungstest abgeschlossen');
         this.responses = this.responses.filter(dev => dev.alive);
         this.availableDevicesInNetwork = this.responses.length;
+
+        this.responses = this.responses.map(dev => {
+          if (dev.ip === "192.168.178.38") {
+            dev.name = "Nicole Handy";
+          }
+          if (dev.ip === "192.168.178.70") {
+            dev.name = "Oli Handy";
+          }
+          if (dev.ip === "192.168.178.1") {
+            dev.name = "Router";
+          }
+          if (dev.ip === "192.168.178.211") {
+            dev.name = "Raspberry Pi";
+          }
+          if (dev.ip === "192.168.178.212") {
+            dev.name = "Internal Server";
+          }
+          if (dev.ip === "192.168.178.71") {
+            dev.name = "Mama Handy";
+          }
+          if (dev.ip === "192.168.178.44") {
+            dev.name = "Samsung-Refrigerator";
+          }
+          if (dev.ip === "192.168.178.88") {
+            dev.name = "Oli Computer";
+          }
+
+          return dev;
+        })
       }
     });
   }
@@ -67,5 +102,24 @@ export class DashboardComponent {
   public navigateToDevice(op: any) {
     this.router.navigate(['/dashboard', op.name, op.ip]);
   }
-}
 
+  public toggleMenu(): void {
+    this.menuOpen = !this.menuOpen;
+    console.log("Menu state:", this.menuOpen);
+  }
+
+  @HostListener('window:resize', ['$event'])
+  public onResize(event: any) {
+    const wasMobile = this.isMobile;
+    this.isMobile = event.target.innerWidth < 1024;
+    
+    if (wasMobile !== this.isMobile) {
+      if (!this.isMobile) {
+        this.menuOpen = true;
+      } 
+      else {
+        this.menuOpen = false;
+      }
+    }
+  }
+}
