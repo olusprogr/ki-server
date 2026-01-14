@@ -19,6 +19,7 @@ import { UiDevice } from './device.model';
 })
 export class DashboardComponent {
   responses: UiDevice[] = [];
+  availableDevicesInNetwork: number = 0;
 
   constructor(
     private router: Router,
@@ -44,7 +45,6 @@ export class DashboardComponent {
     this.apiService.testAvailableDevicesOnLocalNetwork().subscribe({
       next: (response) => {
         console.log('API-Verbindung erfolgreich');
-        console.log(response);
 
         this.responses = response.map(device => ({
           time: device.time,
@@ -59,12 +59,13 @@ export class DashboardComponent {
       complete: () => {
         console.log('API-Verbindungstest abgeschlossen');
         this.responses = this.responses.filter(dev => dev.alive);
+        this.availableDevicesInNetwork = this.responses.length;
       }
     });
   }
 
   public navigateToDevice(op: any) {
-    this.router.navigate(['/dashboard', op.link, op.ipv4]);
+    this.router.navigate(['/dashboard', op.name, op.ip]);
   }
 }
 
