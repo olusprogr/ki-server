@@ -59,7 +59,7 @@ const HOST = process.env.HOST || '0.0.0.0';
 const API_PREFIX = process.env.API_PREFIX;
 
 const db = true;
-const local = true;
+const local = false;
 let dbConnection = null;
 
 const dbService = new DatabaseService();
