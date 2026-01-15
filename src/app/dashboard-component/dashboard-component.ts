@@ -7,6 +7,15 @@ import { environment } from '../../environments/environment';
 import { UiDevice } from './device.model';
 
 
+interface Device {
+  name: string;
+  ip: string;
+}
+
+export interface KnownDevicesResponse {
+  devices: Device[];
+}
+
 @Component({
   selector: 'app-dashboard-component',
   imports: [
@@ -29,7 +38,6 @@ export class DashboardComponent {
     private apiService: ApiService,
     public route: ActivatedRoute
   ) {
-    // Initial: Menü ist nur auf Desktop offen
     this.menuOpen = !this.isMobile;
     
     this.testAvailableDevicesOnLocalNetwork()
@@ -67,36 +75,25 @@ export class DashboardComponent {
         this.responses = this.responses.filter(dev => dev.alive);
         this.availableDevicesInNetwork = this.responses.length;
 
-        this.responses = this.responses.map(dev => {
-          if (dev.ip === "192.168.178.38") {
-            dev.name = "Nicole Handy";
-          }
-          if (dev.ip === "192.168.178.70") {
-            dev.name = "Oli Handy";
-          }
-          if (dev.ip === "192.168.178.1") {
-            dev.name = "Router";
-          }
-          if (dev.ip === "192.168.178.211") {
-            dev.name = "Raspberry Pi";
-          }
-          if (dev.ip === "192.168.178.212") {
-            dev.name = "Internal Server";
-          }
-          if (dev.ip === "192.168.178.71") {
-            dev.name = "Mama Handy";
-          }
-          if (dev.ip === "192.168.178.44") {
-            dev.name = "Samsung-Refrigerator";
-          }
-          if (dev.ip === "192.168.178.88") {
-            dev.name = "Oli Computer";
-          }
-
-          return dev;
-        })
+        this.getKnownDevices();
       }
-    });
+    })
+  }
+
+  private getKnownDevices(): void {
+    this.apiService.getKnownDevices().subscribe({
+      next: (knownDevices) => {
+        const devicesArray = knownDevices.devices;
+
+        for (let device of this.responses) {
+          devicesArray.forEach(known => {
+            if (device.ip === known.ip) {
+              device.name = known.name.toUpperCase();
+            }
+          })
+        }
+      }
+    })
   }
 
   public navigateToDevice(op: any) {
@@ -105,7 +102,6 @@ export class DashboardComponent {
 
   public toggleMenu(): void {
     this.menuOpen = !this.menuOpen;
-    console.log("Menu state:", this.menuOpen);
   }
 
   @HostListener('window:resize', ['$event'])

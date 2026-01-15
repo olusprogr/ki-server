@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../environments/environment';
 import { UiDevice } from './dashboard-component/device.model';
+import { KnownDevicesResponse } from './dashboard-component/dashboard-component';
 
 @Injectable({
   providedIn: 'root',
@@ -40,5 +41,9 @@ export class ApiService {
     });
 
     return this.http.post(`${this.apiUrl}/ssh-tunnel-auth/${command}`, { command }, { headers });
+  }
+
+  public getKnownDevices(): Observable<KnownDevicesResponse> {
+    return this.http.get<KnownDevicesResponse>(`${this.apiUrl}/get-known-devices-in-local-network`);
   }
 }
