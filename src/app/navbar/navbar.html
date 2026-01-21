@@ -1,0 +1,44 @@
+<aside
+  [ngClass]="{
+    'fixed inset-y-0 left-0 z-50 w-1/2 sm:w-3/4 md:w-2/3': isMobile,
+    'static w-64': !isMobile,
+    '-translate-x-full': !menuOpen,
+    'translate-x-0': menuOpen
+  }"
+  class="bg-white border-r border-gray-200 shadow-sm p-6
+         transition-transform duration-400 ease-in-out
+         overflow-y-auto"
+>
+  <h2 class="text-xl font-semibold text-gray-800 mb-8">
+    Dashboard
+  </h2>
+
+  <nav class="space-y-6 text-sm">
+    <a
+      routerLink="/dashboard/start"
+      routerLinkActive="bg-indigo-50 text-indigo-600 font-semibold"
+      class="block px-3 py-2 rounded-md hover:bg-gray-100 transition"
+      (click)="closeMenu.emit()"
+    >
+      Dashboard
+    </a>
+
+    <a
+      routerLink="/dashboard/analytics"
+      routerLinkActive="bg-indigo-50 text-indigo-600 font-semibold"
+      class="block px-3 py-2 rounded-md hover:bg-gray-100 transition"
+      (click)="closeMenu.emit()"
+    >
+      Analytics
+    </a>
+
+    <a
+      routerLink="/dashboard/server"
+      routerLinkActive="bg-indigo-50 text-indigo-600 font-semibold"
+      class="block px-3 py-2 rounded-md hover:bg-gray-100 transition"
+      (click)="closeMenu.emit()"
+    >
+      Server
+    </a>
+  </nav>
+</aside>

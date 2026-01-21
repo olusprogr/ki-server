@@ -1,132 +1,58 @@
-<div class="flex min-h-screen bg-gray-100">
-    
-  <!-- Overlay für mobiles Menü -->
-  <div 
-    *ngIf="menuOpen && isMobile"
-    class="fixed inset-0 backdrop-blur-xs bg-opacity-30 z-40"
-    (click)="toggleMenu()"
-  ></div>
+<div class="min-h-screen bg-gray-50 flex justify-center">
+  <div class="w-full max-w-6xl p-6 lg:p-10">
 
-  <!-- Sidebar -->
-  <aside 
-    [ngClass]="{
-      'fixed inset-y-0 left-0 z-50 w-5/6 sm:w-3/4 md:w-2/3': isMobile,
-      'static w-64': !isMobile,
-      '-translate-x-full': !menuOpen,
-      'translate-x-0': menuOpen
-    }"
-    class="transition-transform duration-300 ease-in-out bg-white shadow-md p-6 overflow-y-auto"
-  >
-    <div class="flex items-center justify-between mb-8">
-      <h2 class="text-xl font-bold">Dashboard</h2>
+    <!-- HEADER -->
+    <header class="mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="text-center sm:text-left">
+        <h1 class="text-2xl lg:text-3xl font-bold text-black">Dashboard</h1>
+        <p class="text-gray-500 mt-2">Welcome to your operations panel</p>
+      </div>
+
       <button 
-        *ngIf="isMobile"
-        class="text-gray-500 hover:text-gray-700"
-        (click)="toggleMenu()"
+        (click)="logOut()" 
+        class="bg-white hover:bg-gray-100 transition-colors px-4 py-2 rounded-lg shadow text-red-500 font-bold"
       >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
+        Logout
       </button>
-    </div>
+    </header>
 
-    <nav class="space-y-6">
-      <div>
-        <h3 class="text-gray-500 text-sm uppercase mb-2">Main</h3>
-        <ul class="space-y-2">
-          <li><a class="block p-2 rounded hover:bg-gray-100 font-medium">Dashboard</a></li>
-          <li><a class="block p-2 rounded hover:bg-gray-100">Analytics</a></li>
-          <li><a class="block p-2 rounded hover:bg-gray-100">Inventory</a></li>
-          <li><a class="block p-2 rounded hover:bg-gray-100">Enquiries</a></li>
-          <li><a class="block p-2 rounded hover:bg-gray-100">Calendar</a></li>
-        </ul>
-      </div>
-
-      <div>
-        <h3 class="text-gray-500 text-sm uppercase mb-2">Products</h3>
-        <ul class="space-y-2">
-          <li><a class="block p-2 rounded hover:bg-gray-100">Add Product</a></li>
-          <li><a class="block p-2 rounded hover:bg-gray-100">View Products</a></li>
-        </ul>
-      </div>
-
-      <div>
-        <h3 class="text-gray-500 text-sm uppercase mb-2">Misc</h3>
-        <ul class="space-y-2">
-          <li><a class="block p-2 rounded hover:bg-gray-100">Notices</a></li>
-          <li><a class="block p-2 rounded hover:bg-gray-100">Controls</a></li>
-          <li><a class="block p-2 rounded hover:bg-gray-100">Settings</a></li>
-        </ul>
-      </div>
-    </nav>
-  </aside>
-
-  <!-- Main Content -->
-  <main [ngClass]="{'flex-1': true, 'w-full': isMobile, 'w-auto': !isMobile}">
-    
-    <!-- Mobile Menu Button -->
-    <div *ngIf="isMobile" class="fixed top-4 left-4 z-30">
-      <button 
-        (click)="toggleMenu()"
-        class="bg-white p-3 rounded-lg shadow-lg text-gray-700 hover:bg-gray-50"
+    <!-- OPERATIONS GRID -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 mb-12">
+      <a 
+        *ngFor="let op of responses"
+        (click)="navigateToDevice(op)"
+        class="bg-white hover:bg-gray-50 transition-colors rounded-lg p-6 text-center shadow cursor-pointer"
       >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-      </button>
+        <h2 class="text-xl font-semibold text-blue-500">{{ op.name }}</h2>
+        <p *ngIf="op.ip" class="text-gray-400 mt-2">{{ op.ip }}</p>
+        <p *ngIf="op.alive" class="text-lime-500 mt-2">Online ✅</p>
+        <p *ngIf="!op.alive" class="text-red-500 mt-2">Offline ❌</p>
+      </a>
     </div>
 
-    <div class="p-6 lg:p-10">
-      <!-- HEADER -->
-      <header class="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 class="text-2xl lg:text-3xl font-bold text-black ml-12 lg:ml-0">Dashboard</h1>
-          <p class="text-gray-500 mt-2">Welcome to your operations panel</p>
+    <!-- ANALYTICS SECTION -->
+    <h2 class="text-xl lg:text-2xl font-bold mb-6 text-center lg:text-left">
+      Analytics Overview
+    </h2>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-10">
+      <!-- Recent Sales -->
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-lg font-semibold mb-4">Recent Sales</h2>
+        <div class="h-48 bg-gray-100 rounded flex items-center justify-center text-gray-400">
+          Chart Placeholder
         </div>
-
-        <button 
-          (click)="logOut()" 
-          class="bg-white hover:bg-gray-100 transition-colors px-4 py-2 rounded-lg shadow text-red-500 font-bold"
-        >
-          Logout
-        </button>
-      </header>
-
-      <!-- OPERATIONS GRID -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 mb-12">
-        <a 
-          *ngFor="let op of responses"
-          (click)="navigateToDevice(op)"
-          class="bg-white hover:bg-gray-50 transition-colors rounded-lg p-6 text-center shadow cursor-pointer"
-        >
-          <h2 class="text-xl font-semibold text-blue-500">{{ op.name }}</h2>
-          <p *ngIf="op.ip" class="text-gray-400 mt-2">{{ op.ip }}</p>
-          <p *ngIf="op.alive" class="text-lime-500 mt-2">Online ✅</p>
-          <p *ngIf="!op.alive" class="text-red-500 mt-2">Offline ❌</p>
-        </a>
       </div>
 
-      <!-- ANALYTICS SECTION -->
-      <h2 class="text-xl lg:text-2xl font-bold mb-6">Analytics Overview</h2>
-
-      <!-- Charts -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-10">
-        <!-- Recent Sales -->
-        <div class="bg-white p-6 rounded-lg shadow">
-          <h2 class="text-lg font-semibold mb-4">Recent Sales</h2>
-          <div class="h-48 bg-gray-100 rounded flex items-center justify-center text-gray-400">
-            Chart Placeholder
-          </div>
-        </div>
-
-        <!-- Recent Reviews -->
-        <div class="bg-white p-6 rounded-lg shadow">
-          <h2 class="text-lg font-semibold mb-4">Recent Reviews</h2>
-          <div class="h-48 bg-gray-100 rounded flex items-center justify-center text-gray-400">
-            Chart Placeholder
-          </div>
+      <!-- Recent Reviews -->
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-lg font-semibold mb-4">Recent Reviews</h2>
+        <div class="h-48 bg-gray-100 rounded flex items-center justify-center text-gray-400">
+          Chart Placeholder
         </div>
       </div>
     </div>
-  </main>
+
+  </div>
 </div>

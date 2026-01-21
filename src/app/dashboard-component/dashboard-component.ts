@@ -22,7 +22,7 @@ export interface KnownDevicesResponse {
     CommonModule,
     RouterModule,
     FormsModule
-  ],
+],
   templateUrl: './dashboard-component.html',
   styleUrl: './dashboard-component.css',
 })
