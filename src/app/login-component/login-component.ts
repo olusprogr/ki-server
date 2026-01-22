@@ -26,29 +26,16 @@ export class LoginComponent {
     private router: Router,
     private apiService: ApiService
   ) {
-    if (this.bypassLogin) {
-      this.router.navigate(['/dashboard']);
-      return;
-    }
+    // if (this.bypassLogin) {
+    //   this.router.navigate(['/dashboard']);
+    //   return;
+    // }
 
-    this.apiService.testConnection().subscribe({
-      next: (response) => {
-        console.log('API-Verbindung erfolgreich');
-        console.log(response);
-        this.backEndResponse = JSON.stringify(response);
-      },
-      error: (error) => {
-        console.error('API-Verbindung fehlgeschlagen:', error);
-      },
-      complete: () => {
-        console.log('API-Verbindungstest abgeschlossen');
-        const authToken = localStorage.getItem('authToken');
-        console.log('Gefundener Auth-Token:', authToken);
-        if (authToken) {
-          this.loginWithToken(authToken);
-        }
-      }
-    });
+    const authToken = localStorage.getItem('authToken');
+
+    if (authToken) {
+      this.loginWithToken(authToken);
+    }
   }
 
   public loginWithToken(token: string): void {
