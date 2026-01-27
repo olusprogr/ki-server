@@ -7,10 +7,13 @@ import { Observable } from 'rxjs';
 })
 export class WebsocketService {
   private socket$: WebSocketSubject<any>;
+  private readonly PROD_WS_URL: string = 'ws://localhost:8080';
+  private readonly SERVER_WS_URL: string = 'ws://192.168.178.212:8080';
+
 
   constructor(  ) {
     this.socket$ = webSocket({
-      url: 'ws://localhost:8080',
+      url: this.SERVER_WS_URL,
       openObserver: {
         next: () => console.log('WebSocket connection established!')
       }

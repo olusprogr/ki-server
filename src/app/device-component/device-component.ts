@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../api-service';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 interface Message {
   type: 'sent' | 'received' | 'system';
@@ -27,6 +28,7 @@ export class DeviceComponent {
   messageInput: string = '';
   validOperations: string[] = ['start', 'stop', 'restart', 'status'];
   token: string | null = null;
+  bypassLogin: boolean = environment.bypassLogin;
 
   constructor(
     private websocketService: WebsocketService,
@@ -35,7 +37,7 @@ export class DeviceComponent {
   ) {
     this.token = localStorage.getItem('authToken') || null;
 
-    if (!this.token) {
+    if (!this.token && !this.bypassLogin) {
       this.router.navigate(['/login']);
     }
 

@@ -4,20 +4,27 @@ import { ApiService } from './api-service';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../environments/environment';
+import { WebsocketService } from './websocket-service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UnitTests {
-  bypassLogin: boolean = environment.bypassLogin || false;
+  private bypassLogin: boolean = environment.bypassLogin || false;
+
+  
+  private apiConfirmedWorking: boolean = false;
+  private wssServerConfirmedWorking: boolean = false;
 
   constructor(
     private router: Router,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private websocketService: WebsocketService
   ) {
     if (this.bypassLogin) {
       console.log('UnitTests Service initialized');
       this.testConnection().subscribe();
+      this.testWebSocket();
     }
   }
 
@@ -33,5 +40,22 @@ export class UnitTests {
         return of(false);
       })
     );
+  }
+
+  private testWebSocket(): void {
+    this.websocketService.getMessages().subscribe({
+      next: (message: any) => {
+        console.log('WebSocket-Nachricht empfangen:', message);
+        this.wssServerConfirmedWorking = true;
+      },
+      error: (error: any) => {
+        console.error('WebSocket-Fehler:', error);
+        this.wssServerConfirmedWorking = false;
+      }
+    });
+
+    if (!this.wssServerConfirmedWorking) {
+      this.websocketService.closeConnection();
+    }
   }
 }

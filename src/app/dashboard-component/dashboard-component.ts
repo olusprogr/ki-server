@@ -96,7 +96,7 @@ export class DashboardComponent {
     })
   }
 
-  public navigateToDevice(op: any) {
+  public navigateToDevice(op: UiDevice): void {
     this.router.navigate(['/dashboard', op.name, op.ip]);
   }
 
