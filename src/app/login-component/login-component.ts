@@ -26,10 +26,10 @@ export class LoginComponent {
     private router: Router,
     private apiService: ApiService
   ) {
-    // if (this.bypassLogin) {
-    //   this.router.navigate(['/dashboard']);
-    //   return;
-    // }
+    if (this.bypassLogin) {
+      this.router.navigate(['/dashboard']);
+      return;
+    }
 
     const authToken = localStorage.getItem('authToken');
 

@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../environments/environment';
-import { UiDevice } from './dashboard-component/device.model';
-import { KnownDevicesResponse } from './dashboard-component/dashboard-component';
+import { UiDevice } from './dashboard/dashboard-component/device.model';
+import { KnownDevicesResponse } from './dashboard/dashboard-component/dashboard-component';
 
 @Injectable({
   providedIn: 'root',

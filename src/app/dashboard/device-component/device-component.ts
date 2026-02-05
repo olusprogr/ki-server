@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
-import { WebsocketService } from '../websocket-service';
+import { WebsocketService } from '../../websocket-service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApiService } from '../api-service';
+import { ApiService } from '../../api-service';
 import { Router } from '@angular/router';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 
 interface Message {
   type: 'sent' | 'received' | 'system';

@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener } from '@angular/core';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
-import { ApiService } from '../api-service';
+import { ApiService } from '../../api-service';
 import { FormsModule } from '@angular/forms';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 import { UiDevice } from './device.model';
 
 

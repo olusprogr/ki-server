@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Seite nicht gefunden</title>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .pulse-animation {
+            animation: pulse-slow 2s ease-in-out infinite;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        
+        .delay-1 { animation-delay: 0.2s; opacity: 0; }
+        .delay-2 { animation-delay: 0.4s; opacity: 0; }
+        .delay-3 { animation-delay: 0.6s; opacity: 0; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full">
+        <!-- Error Icon Container -->
+        <div class="text-center mb-8">
+            <div class="inline-block relative">
+                <!-- Decorative circles -->
+                <div class="absolute -top-4 -left-4 w-24 h-24 bg-blue-200 rounded-full opacity-20 pulse-animation"></div>
+                <div class="absolute -bottom-4 -right-4 w-32 h-32 bg-indigo-200 rounded-full opacity-20 pulse-animation" style="animation-delay: 1s;"></div>
+                
+                <!-- Main 404 -->
+                <div class="relative float-animation">
+                    <svg class="w-64 h-64 mx-auto" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 4 -->
+                        <path d="M40 60 L40 100 L60 100 M60 50 L60 110" stroke="#3b82f6" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                        
+                        <!-- 0 -->
+                        <ellipse cx="100" cy="80" rx="20" ry="30" stroke="#3b82f6" stroke-width="8" fill="none"/>
+                        
+                        <!-- 4 -->
+                        <path d="M140 60 L140 100 L160 100 M160 50 L160 110" stroke="#3b82f6" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                        
+                        <!-- Sad face -->
+                        <circle cx="80" cy="140" r="3" fill="#6b7280"/>
+                        <circle cx="120" cy="140" r="3" fill="#6b7280"/>
+                        <path d="M70 160 Q100 150 130 160" stroke="#6b7280" stroke-width="3" stroke-linecap="round" fill="none"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Error Message -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 md:p-12 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4 fade-in">
+                Oops! Seite nicht gefunden
+            </h1>
+            
+            <p class="text-gray-600 mb-2 text-lg fade-in delay-1">
+                Die Seite, die Sie suchen, existiert nicht oder wurde verschoben.
+            </p>
+            
+            <p class="text-gray-500 mb-8 fade-in delay-2">
+                Fehlercode: <span class="font-mono font-semibold text-blue-600">404</span>
+            </p>
+            
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center fade-in delay-3">
+                <a href="/dashboard/start" class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    Zum Dashboard
+                </a>
+                
+                <a href="/login" class="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-700 font-medium rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Zurück
+                </a>
+            </div>
+            
+            <!-- Additional Help -->
+            <div class="mt-10 pt-8 border-t border-gray-200 fade-in delay-3">
+                <p class="text-sm text-gray-500 mb-4">Häufig gesuchte Bereiche:</p>
+                <div class="flex flex-wrap gap-2 justify-center">
+                    <a href="/analytics" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition-colors duration-200">
+                        Analytics
+                    </a>
+                    <a href="/server" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition-colors duration-200">
+                        Server
+                    </a>
+                    <a href="/devices" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition-colors duration-200">
+                        Geräte
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer Info -->
+        <div class="text-center mt-6 fade-in delay-3">
+            <p class="text-sm text-gray-500">
+                Benötigen Sie Hilfe? 
+                <a href="/support" class="text-blue-600 hover:text-blue-700 font-medium underline">
+                    Kontaktieren Sie den Support
+                </a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

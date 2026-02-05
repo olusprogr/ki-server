@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './login-component/login-component';
-import { LayoutComponent } from './layout/layout';
-import { DashboardComponent } from './dashboard-component/dashboard-component';
-import { DeviceComponent } from './device-component/device-component';
+import { LayoutComponent } from './dashboard/layout/layout';
+import { DashboardComponent } from './dashboard/dashboard-component/dashboard-component';
+import { DeviceComponent } from './dashboard/device-component/device-component';
 import { ErrorPage } from './error-page/error-page';
-import { Analytics } from './analytics/analytics';
+import { Analytics } from './dashboard/analytics/analytics';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },

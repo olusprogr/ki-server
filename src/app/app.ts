@@ -1,6 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { UnitTests } from './unit-tests';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +10,7 @@ import { UnitTests } from './unit-tests';
 export class App implements OnInit{
   protected readonly title = signal('ki-server-new');
   
-  constructor(private unitTests: UnitTests) {}
+  constructor() {}
   
   ngOnInit(): void {
   }
