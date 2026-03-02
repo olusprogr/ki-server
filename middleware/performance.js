@@ -36,7 +36,7 @@ module.exports = async function getServerStats(req, res) {
         try {
             const psOutput = execSync(
                 'ps aux --sort=-%cpu | head -16',
-                { encoding: 'utf-8', timeout: 2000 }
+                { encoding: 'utf-8', timeout: 5000 }
             );
             const lines = psOutput.trim().split('\n').slice(1); // Header überspringen
             backgroundTasks = lines.map(line => {
