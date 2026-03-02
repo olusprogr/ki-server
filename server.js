@@ -10,6 +10,7 @@ const validateUser = require('./routes/validate-user');
 const validateAuthToken = require('./routes/validate-authToken');
 const AvailableDevicesInLocalNetwork = require('./routes/devices-local-network');
 const getKnownDevices = require('./routes/get-known-devices');
+const performanceRoutes = require('./routes/performance');
 const cors = require('cors');
 
 console.log('testRoutes type:', typeof testRoutes);
@@ -20,6 +21,8 @@ console.log('validateUser type:', typeof validateUser);
 console.log('validateAuthToken type:', typeof validateAuthToken);
 console.log('AvailableDevicesInLocalNetwork type:', typeof AvailableDevicesInLocalNetwork);
 console.log('getKnownDevices type:', typeof getKnownDevices);
+console.log('performanceRoutes type:', typeof performanceRoutes);
+
 
 
 
@@ -59,7 +62,7 @@ const HOST = process.env.HOST || '0.0.0.0';
 const API_PREFIX = process.env.API_PREFIX;
 
 const db = true;
-const local = false;
+const local = true;
 let dbConnection = null;
 
 const dbService = new DatabaseService();
@@ -88,6 +91,8 @@ async function startServer() {
     app.use(API_PREFIX, validateAuthToken);
     app.use(API_PREFIX, AvailableDevicesInLocalNetwork);
     app.use(API_PREFIX, getKnownDevices);
+    app.use(API_PREFIX, performanceRoutes);
+
 
     // Liste der Endpoints
     console.log('Registered Endpoints:', expressListEndpoints(app));
