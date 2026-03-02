@@ -15,7 +15,7 @@ export class Analytics implements OnInit, OnDestroy {
   error: string | null = null;
 
   private destroy$ = new Subject<void>();
-  private readonly REFRESH_INTERVAL = 5000;
+  private readonly REFRESH_INTERVAL = 2000;
 
   constructor(private api: ApiService) {}
 
