@@ -1,58 +1,82 @@
-<div class="min-h-screen bg-gray-50 flex justify-center">
-  <div class="w-full max-w-6xl p-6 lg:p-10">
+<div class="min-h-screen">
 
-    <!-- HEADER -->
-    <header class="mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="text-center sm:text-left">
-        <h1 class="text-2xl lg:text-3xl font-bold text-black">Dashboard</h1>
-        <p class="text-gray-500 mt-2">Welcome to your operations panel</p>
-      </div>
-
-      <button 
-        (click)="logOut()" 
-        class="bg-white hover:bg-gray-100 transition-colors px-4 py-2 rounded-lg shadow text-red-500 font-bold"
-      >
-        Logout
-      </button>
-    </header>
-
-    <!-- OPERATIONS GRID -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 mb-12">
-      <a 
-        *ngFor="let op of responses"
-        (click)="navigateToDevice(op)"
-        class="bg-white hover:bg-gray-50 transition-colors rounded-lg p-6 text-center shadow cursor-pointer"
-      >
-        <h2 class="text-xl font-semibold text-blue-500">{{ op.name }}</h2>
-        <p *ngIf="op.ip" class="text-gray-400 mt-2">{{ op.ip }}</p>
-        <p *ngIf="op.alive" class="text-lime-500 mt-2">Online ✅</p>
-        <p *ngIf="!op.alive" class="text-red-500 mt-2">Offline ❌</p>
-      </a>
+  <!-- HEADER -->
+  <header class="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Dashboard</h1>
+      <p class="text-sm font-light text-gray-500 dark:text-gray-400 mt-1">Willkommen in Ihrem Kontrollpanel</p>
     </div>
 
-    <!-- ANALYTICS SECTION -->
-    <h2 class="text-xl lg:text-2xl font-bold mb-6 text-center lg:text-left">
-      Analytics Overview
-    </h2>
+    <button
+      (click)="logOut()"
+      class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 transition dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800"
+    >
+      Abmelden
+    </button>
+  </header>
 
-    <!-- Charts -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-10">
-      <!-- Recent Sales -->
-      <div class="bg-white p-6 rounded-lg shadow">
-        <h2 class="text-lg font-semibold mb-4">Recent Sales</h2>
-        <div class="h-48 bg-gray-100 rounded flex items-center justify-center text-gray-400">
-          Chart Placeholder
-        </div>
+  <!-- STATUS BAR -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:border dark:border-gray-700 p-4 mb-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-primary-600/10 dark:bg-primary-600/20 flex items-center justify-center">
+        <svg class="w-5 h-5 text-primary-600 dark:text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/>
+        </svg>
       </div>
-
-      <!-- Recent Reviews -->
-      <div class="bg-white p-6 rounded-lg shadow">
-        <h2 class="text-lg font-semibold mb-4">Recent Reviews</h2>
-        <div class="h-48 bg-gray-100 rounded flex items-center justify-center text-gray-400">
-          Chart Placeholder
-        </div>
+      <div>
+        <p class="text-sm font-medium text-gray-900 dark:text-white">Verfügbare Geräte</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">{{ availableDevicesInNetwork }} Gerät(e) im Netzwerk</p>
       </div>
     </div>
-
   </div>
+
+  <!-- OPERATIONS GRID -->
+  <h2 class="text-lg font-bold tracking-tight text-gray-900 dark:text-white mb-4">Geräte</h2>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
+    <a
+      *ngFor="let op of responses"
+      (click)="navigateToDevice(op)"
+      class="bg-white dark:bg-gray-800 rounded-lg shadow dark:border dark:border-gray-700 p-6 cursor-pointer
+             hover:shadow-md transition-all group"
+    >
+      <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-lg bg-primary-600/10 dark:bg-primary-600/20 flex items-center justify-center group-hover:bg-primary-600/20 dark:group-hover:bg-primary-600/30 transition">
+          <svg class="w-5 h-5 text-primary-600 dark:text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <span *ngIf="op.alive" class="inline-flex items-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400">
+          <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+          Online
+        </span>
+        <span *ngIf="!op.alive" class="inline-flex items-center gap-1.5 text-xs font-medium text-red-500 dark:text-red-400">
+          <span class="w-2 h-2 rounded-full bg-red-500"></span>
+          Offline
+        </span>
+      </div>
+      <h3 class="text-base font-semibold text-gray-900 dark:text-white">{{ op.name }}</h3>
+      <p *ngIf="op.ip" class="text-sm text-gray-500 dark:text-gray-400 mt-1 font-mono">{{ op.ip }}</p>
+    </a>
+  </div>
+
+  <!-- ANALYTICS SECTION -->
+  <h2 class="text-lg font-bold tracking-tight text-gray-900 dark:text-white mb-4">Analytics</h2>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-10">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:border dark:border-gray-700 p-6">
+      <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-4">Letzte Aktivitäten</h3>
+      <div class="h-48 bg-gray-50 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+        <p class="text-sm text-gray-400 dark:text-gray-500">Diagramm-Platzhalter</p>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:border dark:border-gray-700 p-6">
+      <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-4">Systemübersicht</h3>
+      <div class="h-48 bg-gray-50 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+        <p class="text-sm text-gray-400 dark:text-gray-500">Diagramm-Platzhalter</p>
+      </div>
+    </div>
+  </div>
+
 </div>

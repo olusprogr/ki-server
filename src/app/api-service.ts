@@ -46,4 +46,35 @@ export class ApiService {
   public getKnownDevices(): Observable<KnownDevicesResponse> {
     return this.http.get<KnownDevicesResponse>(`${this.apiUrl}/get-known-devices-in-local-network`);
   }
+
+  public getServerStats(): Observable<ServerStats> {
+    return this.http.get<ServerStats>(`${this.apiUrl}/server-stats`);
+  }
+}
+
+export interface ServerStats {
+  cpu: {
+    usage: number;
+    cores: number;
+    model: string;
+    loadAvg: number[];
+  };
+  memory: {
+    total: number;
+    used: number;
+    free: number;
+    usagePercent: number;
+  };
+  uptime: number;
+  hostname: string;
+  platform: string;
+  backgroundTasks: BackgroundTask[];
+}
+
+export interface BackgroundTask {
+  pid: number;
+  name: string;
+  cpu: number;
+  memory: number;
+  status: string;
 }
