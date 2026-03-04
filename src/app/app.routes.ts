@@ -5,6 +5,7 @@ import { DashboardComponent } from './dashboard/dashboard-component/dashboard-co
 import { DeviceComponent } from './dashboard/device-component/device-component';
 import { ErrorPage } from './error-page/error-page';
 import { Analytics } from './dashboard/analytics/analytics';
+import { WsConsole } from './dashboard/ws-console/ws-console';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -29,6 +30,11 @@ export const routes: Routes = [
         path: 'analytics',
         component: Analytics,
         title: 'Analytics'
+      },
+      {
+        path: 'server',
+        component: WsConsole,
+        title: 'WebSocket Konsole'
       }
     ]
   },

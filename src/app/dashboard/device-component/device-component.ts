@@ -70,7 +70,6 @@ export class DeviceComponent {
     });
 
     this.messageInput = '';
-
   }
 
   public sendOperation(operation: string): void {
