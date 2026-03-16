@@ -10,8 +10,7 @@ export interface WsFileEntry {
 }
 
 // Erlaubte IP-Formate fuer WebSocket-Verbindungen (private Netzwerke)
-const PRIVATE_IP_REGEX = /^(10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|127\.\d{1,3}\.\d{1,3}\.\d{1,3}|localhost)$/;
-
+const PRIVATE_IP_REGEX = /^(10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|127\.\d{1,3}\.\d{1,3}\.\d{1,3}|localhost|olusprogr\.dynv6\.net)$/;
 // Timeout fuer Datei-Operationen (30s Standard, 5min fuer Downloads)
 const OP_TIMEOUT = 30_000;
 const DOWNLOAD_TIMEOUT = 300_000;
@@ -22,7 +21,6 @@ const DOWNLOAD_TIMEOUT = 300_000;
 export class WebsocketService {
   private socket$!: WebSocketSubject<any>;
   private readonly PROD_WS_URL: string = 'wss://olusprogr.dynv6.net:8080';
-  private readonly SERVER_WS_URL: string = 'wss://192.168.178.212:8080';
 
   // Aktuell verbundene URL (null = nicht verbunden)
   private connectedUrl: string | null = null;
@@ -34,7 +32,6 @@ export class WebsocketService {
   private incomingMessages = new Subject<any>();
 
   constructor() {
-    // Standard-Verbindung beim App-Start
     this.connect(this.PROD_WS_URL);
   }
 
@@ -69,14 +66,14 @@ export class WebsocketService {
   // Oeffnet eine temporaere Verbindung zu ws://{ip}:{port}.
   // Bei Erfolg: Haupt-Socket wird auf diese URL umgeschaltet, gibt true zurueck.
   // Bei Fehler/Timeout (5s): gibt false zurueck, Haupt-Socket bleibt unveraendert.
-  public tryConnect(ip: string, port = 8080): Observable<boolean> {
+  public tryConnect(ip: string): Observable<boolean> {
     // Nur private IPs zulassen
     if (!WebsocketService.isPrivateIp(ip)) {
       return of(false);
     }
 
     const result = new Subject<boolean>();
-    const url = `wss://${ip}:${port}`;
+    const url = this.PROD_WS_URL;
 
     // Temporaeren Test-Socket oeffnen
     const testSocket = webSocket({

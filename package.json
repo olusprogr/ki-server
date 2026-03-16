@@ -6,6 +6,7 @@
     "ng": "ng",
     "start": "ng serve --host 0.0.0.0",
     "build": "ng build",
+    "deploy": "ng build && ssh root@192.168.178.211 \"rm -rf /var/www/login-page/*\" && scp -r dist/ki-server-new/* root@192.168.178.211:/var/www/login-page/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:ki-server-new": "node dist/ki-server-new/server/server.mjs"

@@ -57,7 +57,8 @@ export class FileShareComponent implements OnInit, OnDestroy {
   }
 
   private connectAndDownload(ip: string, port: number, fileName: string): void {
-    const url = `wss://${ip}:${port}`;
+    const domain = 'olusprogr.dynv6.net';
+    const url = `wss://${domain}:${port}`;
 
     this.socket$ = webSocket({
       url,

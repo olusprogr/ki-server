@@ -313,7 +313,7 @@ export class WsConsole implements OnInit, OnDestroy {
     // Dateien > 1 GB: 20 Minuten, sonst 5 Minuten
     const ttlMs = file.size > 1_073_741_824 ? 20 * 60_000 : 5 * 60_000;
     const payload = {
-      ip: this.selectedDevice.ip,
+      ip: 'olusprogr.dynv6.net',
       port: 8080,
       fileName: file.name,
       expiresAt: Date.now() + ttlMs,
@@ -321,12 +321,24 @@ export class WsConsole implements OnInit, OnDestroy {
     const token = await createShareToken(payload);
     const link = `${window.location.origin}/share/${token}`;
 
-    navigator.clipboard.writeText(link).then(() => {
-      this.copiedIndex = index;
-      setTimeout(() => {
-        if (this.copiedIndex === index) this.copiedIndex = null;
-      }, 2000);
-    });
+    const copied = await navigator.clipboard.writeText(link).then(() => true).catch(() => false);
+
+    if (!copied) {
+      const ta = document.createElement('textarea');
+      ta.value = link;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+
+    this.copiedIndex = index;
+    setTimeout(() => {
+      if (this.copiedIndex === index) this.copiedIndex = null;
+    }, 2000);
   }
 
   // ==================== Hilfsfunktionen ====================
