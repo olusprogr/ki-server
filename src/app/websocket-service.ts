@@ -22,7 +22,7 @@ const DOWNLOAD_TIMEOUT = 300_000;
 export class WebsocketService {
   private socket$!: WebSocketSubject<any>;
   private readonly PROD_WS_URL: string = 'ws://localhost:8080';
-  private readonly SERVER_WS_URL: string = 'ws://192.168.178.212:8080';
+  private readonly SERVER_WS_URL: string = 'wss://192.168.178.212:8080';
 
   // Aktuell verbundene URL (null = nicht verbunden)
   private connectedUrl: string | null = null;
@@ -76,7 +76,7 @@ export class WebsocketService {
     }
 
     const result = new Subject<boolean>();
-    const url = `ws://${ip}:${port}`;
+    const url = `wss://${ip}:${port}`;
 
     // Temporaeren Test-Socket oeffnen
     const testSocket = webSocket({
