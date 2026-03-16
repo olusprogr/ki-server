@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx ng build)"
+      "Bash(npx ng build)",
+      "Bash(grep -r \"ws\\\\.Server\\\\|new WebSocket\\\\|WebSocketServer\\\\|action.*file\" c:/Users/olusp/Programming/ki-server-new/src --include=*.ts --include=*.js)"
     ]
   }
 }

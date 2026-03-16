@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ApiService } from '../../api-service';
 import { WebsocketService } from '../../websocket-service';
 import { UiDevice } from '../dashboard-component/device.model';
+import { createShareToken } from '../../auth/share-token';
 
 // Datei-Objekt fuer die UI-Liste
 export interface ServerFile {
@@ -10,7 +11,7 @@ export interface ServerFile {
   size: number;
   type: string;
   addedAt: Date;
-  status: 'uploading' | 'done' | 'error' | 'deleting' | 'server';
+  status: 'uploading' | 'done' | 'error' | 'deleting' | 'downloading' | 'server';
   // 'server'   = bereits auf dem Server vorhanden (aus list-Response)
   // 'uploading' = wird gerade hochgeladen
   // 'done'      = Upload erfolgreich bestaetigt vom Server
@@ -38,6 +39,7 @@ export class WsConsole implements OnInit, OnDestroy {
   // --- State: Dateiverwaltung (Step 2, erst nach connectionOk) ---
   files: ServerFile[] = [];
   isDragOver = false;
+  copiedIndex: number | null = null;
 
   constructor(
     private apiService: ApiService,
@@ -263,6 +265,68 @@ export class WsConsole implements OnInit, OnDestroy {
       // Datei war nur lokal (upload fehlgeschlagen etc.) -> direkt entfernen
       this.files.splice(index, 1);
     }
+  }
+
+  // ==================== Datei herunterladen ====================
+
+  // Datei vom Server herunterladen und als Browser-Download bereitstellen
+  downloadFile(index: number): void {
+    const file = this.files[index];
+    if (!file || file.status === 'downloading') return;
+
+    const prevStatus = file.status;
+    file.status = 'downloading';
+
+    this.wsService.downloadFile(file.name).subscribe((res) => {
+      if (res.success && res.data) {
+        // Base64-Daten in einen Blob umwandeln und Download ausloesen
+        const byteChars = atob(res.data);
+        const byteNumbers = new Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) {
+          byteNumbers[i] = byteChars.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: file.type || 'application/octet-stream' });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        file.status = prevStatus;
+      } else {
+        file.status = 'error';
+      }
+    });
+  }
+
+  // ==================== Datei teilen ====================
+
+  // Generiert einen oeffentlichen Share-Link fuer die Datei und kopiert ihn in die Zwischenablage.
+  // Der Link fuehrt zu /share/:token, wo der Token die Geraete-IP und den Dateinamen enthaelt.
+  async shareFile(index: number): Promise<void> {
+    const file = this.files[index];
+    if (!file || !this.selectedDevice) return;
+
+    // Dateien > 1 GB: 20 Minuten, sonst 5 Minuten
+    const ttlMs = file.size > 1_073_741_824 ? 20 * 60_000 : 5 * 60_000;
+    const payload = {
+      ip: this.selectedDevice.ip,
+      port: 8080,
+      fileName: file.name,
+      expiresAt: Date.now() + ttlMs,
+    };
+    const token = await createShareToken(payload);
+    const link = `${window.location.origin}/share/${token}`;
+
+    navigator.clipboard.writeText(link).then(() => {
+      this.copiedIndex = index;
+      setTimeout(() => {
+        if (this.copiedIndex === index) this.copiedIndex = null;
+      }, 2000);
+    });
   }
 
   // ==================== Hilfsfunktionen ====================

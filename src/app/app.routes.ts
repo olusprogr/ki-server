@@ -6,15 +6,20 @@ import { DeviceComponent } from './dashboard/device-component/device-component';
 import { ErrorPage } from './error-page/error-page';
 import { Analytics } from './dashboard/analytics/analytics';
 import { WsConsole } from './dashboard/ws-console/ws-console';
+import { FileShareComponent } from './share/file-share';
+import { authGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
 
   { path: 'login', component: LoginComponent, title: 'Login' },
 
+  { path: 'share/:token', component: FileShareComponent, title: 'Datei Download' },
+
   {
     path: 'dashboard',
     component: LayoutComponent,
+    canActivate: [authGuard],
     children: [
       {
         path: 'start',

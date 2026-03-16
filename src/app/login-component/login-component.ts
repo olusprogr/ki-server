@@ -34,24 +34,21 @@ export class LoginComponent {
     const authToken = localStorage.getItem('authToken');
 
     if (authToken) {
-      this.loginWithToken(authToken);
+      this.loginWithToken();
     }
   }
 
-  public loginWithToken(token: string): void {
-    this.apiService.loginWithToken(token).subscribe({
+  public loginWithToken(): void {
+    this.apiService.loginWithToken().subscribe({
       next: (response) => {
         if (response.pass) {
           this.router.navigate(['/dashboard']);
-          console.log("Automatisch mit Token eingeloggt.");
         } else {
-          alert("Ungültiger Token.");
-          console.log("Token ungültig.");
+          localStorage.removeItem('authToken');
         }
       },
-      error: (error) => {
-        alert(JSON.stringify(error.error.error) || "Ungültiger Token.");
-        console.error(error);
+      error: () => {
+        localStorage.removeItem('authToken');
       }
     });
   }

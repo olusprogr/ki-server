@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../environments/environment';
 import { UiDevice } from './dashboard/dashboard-component/device.model';
@@ -11,9 +11,7 @@ import { KnownDevicesResponse } from './dashboard/dashboard-component/dashboard-
 export class ApiService {
   private apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {
-    console.log(`API Service initialized with URL: ${this.apiUrl}`);
-  }
+  constructor(private http: HttpClient) {}
 
   public testConnection(): Observable<any> {
     return this.http.get(`${this.apiUrl}/test`);
@@ -23,24 +21,16 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/login`, credentials);
   }
 
-  public loginWithToken(token: string): Observable<any> {
-    const headers = new HttpHeaders({
-      Authorization: token
-    });
-
-    return this.http.post(`${this.apiUrl}/validate-authToken`, {}, { headers });
+  public loginWithToken(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/validate-authToken`, {});
   }
 
   public testAvailableDevicesOnLocalNetwork(): Observable<UiDevice[]> {
     return this.http.get<UiDevice[]>(`${this.apiUrl}/ping-available-devices-in-local-network`);
   }
 
-  public sendSSHCommandToDevice(command: string, token: string): Observable<any> {
-    const headers = new HttpHeaders({
-      Authorization: token
-    });
-
-    return this.http.post(`${this.apiUrl}/ssh-tunnel-auth/${command}`, { command }, { headers });
+  public sendSSHCommandToDevice(command: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/ssh-tunnel-auth/${encodeURIComponent(command)}`, { command });
   }
 
   public getKnownDevices(): Observable<KnownDevicesResponse> {

@@ -345,6 +345,15 @@
                         Fehler
                       </span>
                     }
+                    @if (file.status === 'downloading') {
+                      <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                        <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Download
+                      </span>
+                    }
                     @if (file.status === 'deleting') {
                       <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
                         <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -356,16 +365,48 @@
                     }
                   </td>
 
-                  <!-- Remove -->
+                  <!-- Actions -->
                   <td class="px-6 py-3">
-                    <button
-                      (click)="removeFile(i)"
-                      class="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                      </svg>
-                    </button>
+                    <div class="flex items-center gap-1">
+                      <!-- Share -->
+                      <button
+                        (click)="shareFile(i); $event.stopPropagation()"
+                        [disabled]="file.status === 'uploading' || file.status === 'deleting'"
+                        class="p-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                        [ngClass]="copiedIndex === i ? 'text-green-500' : 'text-gray-400 hover:text-purple-500'"
+                        [title]="copiedIndex === i ? 'Link kopiert!' : 'Teilen'"
+                      >
+                        @if (copiedIndex === i) {
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                          </svg>
+                        } @else {
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                          </svg>
+                        }
+                      </button>
+                      <!-- Download -->
+                      <button
+                        (click)="downloadFile(i)"
+                        [disabled]="file.status === 'uploading' || file.status === 'downloading' || file.status === 'deleting'"
+                        class="p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-400 hover:text-blue-500 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Herunterladen"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                      </button>
+                      <!-- Delete -->
+                      <button
+                        (click)="removeFile(i)"
+                        class="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               }

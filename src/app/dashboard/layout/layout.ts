@@ -15,7 +15,6 @@ export class LayoutComponent {
   menuOpen = true;
 
   constructor(private router: Router) {
-    console.log(this.router.url);
     this.router.navigate(['dashboard/start']);
   }
 

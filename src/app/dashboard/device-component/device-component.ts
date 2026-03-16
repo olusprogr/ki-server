@@ -3,8 +3,6 @@ import { WebsocketService } from '../../websocket-service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../api-service';
-import { Router } from '@angular/router';
-import { environment } from '../../../environments/environment';
 
 interface Message {
   type: 'sent' | 'received' | 'system';
@@ -27,22 +25,12 @@ export class DeviceComponent {
   isConnected: boolean = false;
   messageInput: string = '';
   validOperations: string[] = ['start', 'stop', 'restart', 'status'];
-  token: string | null = null;
-  bypassLogin: boolean = environment.bypassLogin;
 
   constructor(
     private websocketService: WebsocketService,
     private apiService: ApiService,
-    private router: Router
   ) {
-    this.token = localStorage.getItem('authToken') || null;
-
-    if (!this.token && !this.bypassLogin) {
-      this.router.navigate(['/login']);
-    }
-
     this.websocketService.getMessages().subscribe((message: any) => {
-      console.log('Nachricht empfangen:', message);
       if (!message) {
         this.isConnected = false;
         return;
@@ -60,7 +48,7 @@ export class DeviceComponent {
     if (this.messageInput.trim() === '') {
       return;
     }
-    
+
     this.websocketService.sendMessage({message: this.messageInput});
 
     this.messageLog.push({
@@ -73,17 +61,10 @@ export class DeviceComponent {
   }
 
   public sendOperation(operation: string): void {
-    if (!this.validOperations.includes(operation)) {
-      console.error(`Ungültige Operation: ${operation}`);
-      return;
-    }
+    if (!this.validOperations.includes(operation)) return;
 
-    this.apiService.sendSSHCommandToDevice(operation, this.token!).subscribe({
-      next: (response) => {
-        console.log(`Operation "${operation}" erfolgreich gesendet.`, JSON.stringify(response));
-      error: (err: any) => {
-        console.error(`Fehler beim Senden der Operation "${operation}":`, err);
-      }}
-    })
+    this.apiService.sendSSHCommandToDevice(operation).subscribe({
+      error: () => {}
+    });
   }
 }
