@@ -21,7 +21,7 @@ const DOWNLOAD_TIMEOUT = 300_000;
 })
 export class WebsocketService {
   private socket$!: WebSocketSubject<any>;
-  private readonly PROD_WS_URL: string = 'wss://localhost:8080';
+  private readonly PROD_WS_URL: string = 'wss://192.168.178.212:8080';
   private readonly SERVER_WS_URL: string = 'wss://192.168.178.212:8080';
 
   // Aktuell verbundene URL (null = nicht verbunden)
