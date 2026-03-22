@@ -36,6 +36,10 @@ export class WebsocketService {
   private msgSub: Subscription | null = null;
   private incomingMessages = new Subject<any>();
 
+  // Upload-Queue: serialisiert mehrere gleichzeitige Upload-Anfragen
+  private uploadQueue: Array<() => void> = [];
+  private uploadRunning = false;
+
   constructor() {
     this.connect(this.PROD_WS_URL);
   }
@@ -117,57 +121,71 @@ export class WebsocketService {
   // Gibt Fortschritt (0-100%) zurueck, abschliessend true/false als letzter Wert
   public sendFile(file: File, onProgress?: (p: TransferProgress) => void): Observable<boolean> {
     const result = new Subject<boolean>();
+
+    this.uploadQueue.push(() => this.executeUpload(file, onProgress, result));
+    this.drainUploadQueue();
+
+    return result.asObservable();
+  }
+
+  private drainUploadQueue(): void {
+    if (this.uploadRunning || this.uploadQueue.length === 0) return;
+    this.uploadRunning = true;
+    const next = this.uploadQueue.shift()!;
+    next();
+  }
+
+  private executeUpload(file: File, onProgress: ((p: TransferProgress) => void) | undefined, result: Subject<boolean>): void {
     const safeName = WebsocketService.sanitizeFileName(file.name);
     const totalChunks = Math.ceil(file.size / UPLOAD_CHUNK_SIZE);
-    let sentChunks = 0;
-    let started = false;
     let cancelled = false;
+
+    const finish = (ok: boolean) => {
+      result.next(ok);
+      result.complete();
+      this.uploadRunning = false;
+      this.drainUploadQueue();
+    };
 
     // Auf upload-start Antwort warten bevor Chunks gesendet werden
     const startSub = this.incomingMessages.pipe(
       filter((msg) => msg.action === 'upload-start' && msg.fileName === safeName),
       first(),
       rxTimeout(15_000),
-      catchError(() => { result.next(false); result.complete(); return of(null); }),
+      catchError(() => { finish(false); return of(null); }),
     ).subscribe((msg) => {
       if (!msg) return;
-      if (msg.skipped) { result.next(true); result.complete(); return; }
-      if (!msg.success) { result.next(false); result.complete(); return; }
-      started = true;
+      if (msg.skipped) { finish(true); return; }
+      if (!msg.success) { finish(false); return; }
       this.sendNextChunk(file, safeName, 0, totalChunks, result, onProgress, () => cancelled);
     });
 
-    // Auf ACKs hoeren und naechsten Chunk senden (Flow-Control)
+    // Auf ACKs hoeren (Flow-Control + Fortschritt)
     const ackSub = this.incomingMessages.pipe(
       filter((msg) => msg.action === 'upload-chunk-ack' && msg.fileName === safeName),
     ).subscribe((msg) => {
       if (cancelled) return;
-      sentChunks++;
       if (onProgress) {
         const transferred = Math.min((msg.chunkIndex + 1) * UPLOAD_CHUNK_SIZE, file.size);
         onProgress({ fileName: safeName, transferred, total: file.size, percent: Math.round(transferred / file.size * 100) });
       }
     });
 
-    // Auf Fehler hoeren
-    const errSub = this.incomingMessages.pipe(
+    // Auf Abschluss oder Fehler hoeren
+    const doneSub = this.incomingMessages.pipe(
       filter((msg) => (msg.action === 'upload-error' || msg.action === 'upload-complete') && msg.fileName === safeName),
       first(),
       rxTimeout(6 * 60 * 60_000),
-      catchError(() => { result.next(false); result.complete(); return of(null); }),
+      catchError(() => { startSub.unsubscribe(); ackSub.unsubscribe(); finish(false); return of(null); }),
     ).subscribe((msg) => {
       startSub.unsubscribe();
       ackSub.unsubscribe();
-      errSub.unsubscribe();
+      doneSub.unsubscribe();
       if (!msg) return;
-      result.next(msg.action === 'upload-complete' && msg.success === true);
-      result.complete();
+      finish(msg.action === 'upload-complete' && msg.success === true);
     });
 
-    // Upload starten
     this.socket$.next({ action: 'upload-start', fileName: safeName, totalChunks, fileSize: file.size });
-
-    return result.asObservable();
   }
 
   // Liest einen Chunk aus der Datei und sendet ihn

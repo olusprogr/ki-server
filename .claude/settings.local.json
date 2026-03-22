@@ -8,7 +8,8 @@
       "Bash(nslookup olusprogr.dynv6.net 8.8.8.8)",
       "Bash(curl -v --max-time 8 https://olusprogr.dynv6.net:8080)",
       "Bash(openssl s_client -connect olusprogr.dynv6.net:8080 -brief)",
-      "Bash(curl --max-time 8 -k https://olusprogr.dynv6.net:8080 -v)"
+      "Bash(curl --max-time 8 -k https://olusprogr.dynv6.net:8080 -v)",
+      "Bash(npx tsc:*)"
     ]
   }
 }
