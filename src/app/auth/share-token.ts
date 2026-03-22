@@ -30,22 +30,34 @@ async function hmacVerify(payload: string, signature: string): Promise<boolean> 
   return mismatch === 0;
 }
 
+function toBase64(str: string): string {
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) =>
+    String.fromCharCode(parseInt(p1, 16))
+  ));
+}
+
+function fromBase64(b64: string): string {
+  return decodeURIComponent(atob(b64).split('').map(c =>
+    '%' + c.charCodeAt(0).toString(16).padStart(2, '0')
+  ).join(''));
+}
+
 export async function createShareToken(payload: SharePayload): Promise<string> {
   const json = JSON.stringify(payload);
-  const b64 = btoa(json);
+  const b64 = toBase64(json);
   const sig = await hmacSign(b64);
-  return btoa(JSON.stringify({ d: b64, s: sig }));
+  return toBase64(JSON.stringify({ d: b64, s: sig }));
 }
 
 export async function verifyShareToken(token: string): Promise<SharePayload | null> {
   try {
-    const { d, s } = JSON.parse(atob(token));
+    const { d, s } = JSON.parse(fromBase64(token));
     if (!d || !s) return null;
 
     const valid = await hmacVerify(d, s);
     if (!valid) return null;
 
-    const payload: SharePayload = JSON.parse(atob(d));
+    const payload: SharePayload = JSON.parse(fromBase64(d));
     if (!payload.ip || !payload.fileName || !payload.expiresAt) return null;
     if (Date.now() > payload.expiresAt) return null;
 

@@ -11,9 +11,9 @@ export interface WsFileEntry {
 
 // Erlaubte IP-Formate fuer WebSocket-Verbindungen (private Netzwerke)
 const PRIVATE_IP_REGEX = /^(10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|127\.\d{1,3}\.\d{1,3}\.\d{1,3}|localhost|olusprogr\.dynv6\.net)$/;
-// Timeout fuer Datei-Operationen (30s Standard, 5min fuer Downloads)
+// Timeout fuer Datei-Operationen (30s Standard, 6h fuer Up-/Downloads)
 const OP_TIMEOUT = 30_000;
-const DOWNLOAD_TIMEOUT = 300_000;
+const DOWNLOAD_TIMEOUT = 6 * 60 * 60_000;
 
 @Injectable({
   providedIn: 'root',
