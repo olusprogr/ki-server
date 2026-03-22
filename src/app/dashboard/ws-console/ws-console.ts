@@ -43,6 +43,19 @@ export class WsConsole implements OnInit, OnDestroy {
   isDragOver = false;
   copiedIndex: number | null = null;
 
+  // --- State: Download-Fortschritt & Musik ---
+  downloadEta: string = '';
+  downloadSpeed: string = '';
+  private downloadStartTime = 0;
+  private audio: HTMLAudioElement | null = null;
+
+  // Jamendo free-music streams (CC-licensed, no API key needed)
+  private readonly MUSIC_STREAMS = [
+    'https://streaming.jamendo.com/JamTop',
+    'https://streaming.jamendo.com/JamClassical',
+    'https://streaming.jamendo.com/JamElectro',
+  ];
+
   // --- State: Suche & Sortierung ---
   searchQuery = '';
   sortField: 'name' | 'size' = 'name';
@@ -79,8 +92,9 @@ export class WsConsole implements OnInit, OnDestroy {
     this.loadDevices();
   }
 
-  // Beim Verlassen der Seite: offene WSS-Verbindung schliessen
+  // Beim Verlassen der Seite: offene WSS-Verbindung schliessen + Musik stoppen
   ngOnDestroy(): void {
+    this.stopMusic();
     if (this.connectionOk) {
       this.wsService.closeConnection();
     }
@@ -307,11 +321,28 @@ export class WsConsole implements OnInit, OnDestroy {
 
     const prevStatus = file.status;
     file.status = 'downloading';
+    this.downloadStartTime = Date.now();
+    this.downloadEta = '';
+    this.downloadSpeed = '';
+    this.startMusic();
 
     this.wsService.downloadFile(file.name, (p) => {
       file.progress = p.percent;
+      const elapsed = (Date.now() - this.downloadStartTime) / 1000;
+      if (elapsed > 0 && p.transferred > 0) {
+        const bytesPerSec = p.transferred / elapsed;
+        const remaining = p.total - p.transferred;
+        const etaSec = remaining / bytesPerSec;
+        this.downloadSpeed = this.formatSize(Math.round(bytesPerSec)) + '/s';
+        this.downloadEta = etaSec < 60
+          ? Math.round(etaSec) + 's'
+          : Math.round(etaSec / 60) + 'min ' + Math.round(etaSec % 60) + 's';
+      }
     }).subscribe((res) => {
       file.progress = undefined;
+      this.downloadEta = '';
+      this.downloadSpeed = '';
+      this.stopMusic();
       if (res.success && res.blob) {
         const url = URL.createObjectURL(res.blob);
         const a = document.createElement('a');
@@ -329,6 +360,21 @@ export class WsConsole implements OnInit, OnDestroy {
         file.status = 'error';
       }
     });
+  }
+
+  private startMusic(): void {
+    if (this.audio) return;
+    const stream = this.MUSIC_STREAMS[Math.floor(Math.random() * this.MUSIC_STREAMS.length)];
+    this.audio = new Audio(stream);
+    this.audio.volume = 0.3;
+    this.audio.play().catch(() => {});
+  }
+
+  private stopMusic(): void {
+    if (!this.audio) return;
+    this.audio.pause();
+    this.audio.src = '';
+    this.audio = null;
   }
 
   // ==================== Datei teilen ====================
