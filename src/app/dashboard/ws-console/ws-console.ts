@@ -306,13 +306,12 @@ export class WsConsole implements OnInit, OnDestroy {
 
     this.wsService.downloadFile(file.name).subscribe((res) => {
       if (res.success && res.data) {
-        // Base64-Daten in einen Blob umwandeln und Download ausloesen
-        const byteChars = atob(res.data);
-        const byteNumbers = new Array(byteChars.length);
-        for (let i = 0; i < byteChars.length; i++) {
-          byteNumbers[i] = byteChars.charCodeAt(i);
+        // Base64 direkt in Uint8Array dekodieren ohne Zwischenarray
+        const binary = atob(res.data);
+        const byteArray = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          byteArray[i] = binary.charCodeAt(i);
         }
-        const byteArray = new Uint8Array(byteNumbers);
         const blob = new Blob([byteArray], { type: file.type || 'application/octet-stream' });
 
         const url = URL.createObjectURL(blob);
