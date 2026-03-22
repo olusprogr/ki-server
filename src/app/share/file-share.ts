@@ -107,7 +107,7 @@ export class FileShareComponent implements OnInit, OnDestroy {
       byteNumbers[i] = byteChars.charCodeAt(i);
     }
     const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: mimeType || 'application/octet-stream' });
+    const blob = new Blob([byteArray], { type: 'application/octet-stream' });
 
     this.fileSize = this.formatSize(blob.size);
 
@@ -115,8 +115,13 @@ export class FileShareComponent implements OnInit, OnDestroy {
     const a = document.createElement('a');
     a.href = url;
     a.download = name;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
   }
 
   formatSize(bytes: number): string {

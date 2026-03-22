@@ -312,17 +312,19 @@ export class WsConsole implements OnInit, OnDestroy {
         for (let i = 0; i < binary.length; i++) {
           byteArray[i] = binary.charCodeAt(i);
         }
-        const blob = new Blob([byteArray], { type: file.type || 'application/octet-stream' });
+        const blob = new Blob([byteArray], { type: 'application/octet-stream' });
 
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = file.name;
-        a.style.display = 'none';
+        a.rel = 'noopener';
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 10_000);
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 100);
 
         file.status = prevStatus;
       } else {

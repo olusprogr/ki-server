@@ -9,11 +9,21 @@ export interface WsFileEntry {
   fileType: string;
 }
 
-// Erlaubte IP-Formate fuer WebSocket-Verbindungen (private Netzwerke)
+// Fortschritt fuer laufende Up-/Downloads
+export interface TransferProgress {
+  fileName: string;
+  transferred: number; // Bytes bereits uebertragen
+  total: number;       // Gesamtgroesse in Bytes
+  percent: number;     // 0-100
+}
+
+// Erlaubte IP-Formate fuer WebSocket-Verbindungen (private Netzwerke + eigene Domain)
 const PRIVATE_IP_REGEX = /^(10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|127\.\d{1,3}\.\d{1,3}\.\d{1,3}|localhost|olusprogr\.dynv6\.net)$/;
-// Timeout fuer Datei-Operationen (30s Standard, 6h fuer Up-/Downloads)
+
 const OP_TIMEOUT = 30_000;
-const DOWNLOAD_TIMEOUT = 6 * 60 * 60_000;
+
+// Chunk-Groesse beim Upload: 1 MB
+const UPLOAD_CHUNK_SIZE = 1 * 1024 * 1024;
 
 @Injectable({
   providedIn: 'root',
@@ -22,38 +32,26 @@ export class WebsocketService {
   private socket$!: WebSocketSubject<any>;
   private readonly PROD_WS_URL: string = 'wss://olusprogr.dynv6.net:8080';
 
-  // Aktuell verbundene URL (null = nicht verbunden)
   private connectedUrl: string | null = null;
-
-  // Subscription auf eingehende Nachrichten (wird bei reconnect neu erstellt)
   private msgSub: Subscription | null = null;
-
-  // Subject fuer alle eingehenden WSS-Nachrichten (intern zum Filtern)
   private incomingMessages = new Subject<any>();
 
   constructor() {
     this.connect(this.PROD_WS_URL);
   }
 
-  // Prueft ob eine IP-Adresse im privaten Netzwerk liegt
   static isPrivateIp(ip: string): boolean {
     return PRIVATE_IP_REGEX.test(ip);
   }
 
-  // Entfernt gefaehrliche Zeichen aus Dateinamen (Path Traversal Schutz)
   static sanitizeFileName(name: string): string {
     return name.replace(/[/\\:*?"<>|]/g, '_').replace(/\.{2,}/g, '.');
   }
 
-  // Erstellt eine neue WebSocket-Verbindung zur angegebenen URL
-  // und leitet alle eingehenden Nachrichten an incomingMessages weiter
   private connect(url: string): void {
     this.connectedUrl = url;
     this.msgSub?.unsubscribe();
-
     this.socket$ = webSocket({ url });
-
-    // Alle eingehenden Nachrichten intern weiterleiten
     this.msgSub = this.socket$.subscribe({
       next: (msg) => this.incomingMessages.next(msg),
       error: () => {},
@@ -62,9 +60,6 @@ export class WebsocketService {
 
   // ==================== Verbindungstest ====================
 
-  // Oeffnet einen temporaeren Test-Socket zu einer URL.
-  // onFail wird aufgerufen wenn die Verbindung fehlschlaegt oder der Timeout (5s) ablaeuft.
-  // Bei Erfolg: Haupt-Socket wird auf diese URL umgeschaltet, result emittet true.
   private tryUrl(url: string, result: Subject<boolean>, onFail: () => void): void {
     const testSocket = webSocket({
       url,
@@ -84,201 +79,221 @@ export class WebsocketService {
       onFail();
     }, 5000);
 
-    testSocket.subscribe({
-      error: () => {
-        clearTimeout(connectTimeout);
-        onFail();
-      }
-    });
+    testSocket.subscribe({ error: () => { clearTimeout(connectTimeout); onFail(); } });
   }
 
-  // Versucht erst die globale Domain, bei Fehler/Timeout die lokale IP als Fallback.
   public tryConnect(ip: string, port = 8080): Observable<boolean> {
     const result = new Subject<boolean>();
-
     this.tryUrl(this.PROD_WS_URL, result, () => {
-      // Globale Verbindung fehlgeschlagen -> lokale IP versuchen
       if (WebsocketService.isPrivateIp(ip)) {
-        this.tryUrl(`wss://${ip}:${port}`, result, () => {
-          result.next(false);
-          result.complete();
-        });
+        this.tryUrl(`wss://${ip}:${port}`, result, () => { result.next(false); result.complete(); });
       } else {
         result.next(false);
         result.complete();
       }
     });
-
     return result.asObservable();
   }
 
-  // ==================== Datei-Operationen ====================
+  // ==================== Dateiliste ====================
 
-  // Dateiliste vom Server holen (action: 'file-list').
-  // Server antwortet mit { action: 'file-list', success, files: WsFileEntry[] }
   public listFiles(): Observable<WsFileEntry[]> {
     const result = new Subject<WsFileEntry[]>();
-
-    // Auf die Antwort mit action='file-list' warten
     this.incomingMessages.pipe(
       filter((msg) => msg.action === 'file-list'),
       first(),
       rxTimeout(OP_TIMEOUT),
-      catchError(() => {
-        result.next([]);
-        result.complete();
-        return of();
-      }),
+      catchError(() => { result.next([]); result.complete(); return of(); }),
     ).subscribe({
-      next: (msg) => {
-        result.next(msg.success ? (msg.files || []) : []);
-        result.complete();
-      },
-      error: () => {
-        result.next([]);
-        result.complete();
-      },
+      next: (msg) => { result.next(msg.success ? (msg.files || []) : []); result.complete(); },
+      error: () => { result.next([]); result.complete(); },
     });
-
-    // Request senden
     this.socket$.next({ action: 'file-list' });
-
     return result.asObservable();
   }
 
-  // Datei als Base64 ueber den WebSocket an den Server senden.
-  // Sendet { action: 'file-upload', fileName, fileType, fileSize, data }
-  // Wartet auf Server-Antwort { action: 'file-upload', success: true/false }
-  public sendFile(file: File): Observable<boolean> {
+  // ==================== Chunked Upload ====================
+
+  // Gibt Fortschritt (0-100%) zurueck, abschliessend true/false als letzter Wert
+  public sendFile(file: File, onProgress?: (p: TransferProgress) => void): Observable<boolean> {
     const result = new Subject<boolean>();
     const safeName = WebsocketService.sanitizeFileName(file.name);
+    const totalChunks = Math.ceil(file.size / UPLOAD_CHUNK_SIZE);
+    let sentChunks = 0;
+    let started = false;
+    let cancelled = false;
 
-    // Auf die Upload-Antwort vom Server warten
-    this.incomingMessages.pipe(
-      filter((msg) => msg.action === 'file-upload' && msg.fileName === safeName),
+    // Auf upload-start Antwort warten bevor Chunks gesendet werden
+    const startSub = this.incomingMessages.pipe(
+      filter((msg) => msg.action === 'upload-start' && msg.fileName === safeName),
       first(),
-      rxTimeout(DOWNLOAD_TIMEOUT),
-      catchError(() => {
-        result.next(false);
-        result.complete();
-        return of();
-      }),
-    ).subscribe({
-      next: (msg) => {
-        result.next(msg.success === true);
-        result.complete();
-      },
-      error: () => {
-        result.next(false);
-        result.complete();
-      },
+      rxTimeout(15_000),
+      catchError(() => { result.next(false); result.complete(); return of(null); }),
+    ).subscribe((msg) => {
+      if (!msg) return;
+      if (msg.skipped) { result.next(true); result.complete(); return; }
+      if (!msg.success) { result.next(false); result.complete(); return; }
+      started = true;
+      this.sendNextChunk(file, safeName, 0, totalChunks, result, onProgress, () => cancelled);
     });
 
-    // Datei lesen und senden
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const base64 = (reader.result as string).split(',')[1];
-        this.socket$.next({
-          action: 'file-upload',
-          fileName: safeName,
-          fileType: file.type || 'unknown',
-          fileSize: file.size,
-          data: base64,
-        });
-      } catch {
-        result.next(false);
-        result.complete();
+    // Auf ACKs hoeren und naechsten Chunk senden (Flow-Control)
+    const ackSub = this.incomingMessages.pipe(
+      filter((msg) => msg.action === 'upload-chunk-ack' && msg.fileName === safeName),
+    ).subscribe((msg) => {
+      if (cancelled) return;
+      sentChunks++;
+      if (onProgress) {
+        const transferred = Math.min((msg.chunkIndex + 1) * UPLOAD_CHUNK_SIZE, file.size);
+        onProgress({ fileName: safeName, transferred, total: file.size, percent: Math.round(transferred / file.size * 100) });
       }
-    };
-    reader.onerror = () => {
-      result.next(false);
+    });
+
+    // Auf Fehler hoeren
+    const errSub = this.incomingMessages.pipe(
+      filter((msg) => (msg.action === 'upload-error' || msg.action === 'upload-complete') && msg.fileName === safeName),
+      first(),
+      rxTimeout(6 * 60 * 60_000),
+      catchError(() => { result.next(false); result.complete(); return of(null); }),
+    ).subscribe((msg) => {
+      startSub.unsubscribe();
+      ackSub.unsubscribe();
+      errSub.unsubscribe();
+      if (!msg) return;
+      result.next(msg.action === 'upload-complete' && msg.success === true);
       result.complete();
-    };
-    reader.readAsDataURL(file);
+    });
+
+    // Upload starten
+    this.socket$.next({ action: 'upload-start', fileName: safeName, totalChunks, fileSize: file.size });
 
     return result.asObservable();
   }
 
-  // Datei auf dem Server loeschen (type: 'delete').
-  // Server antwortet mit { type: 'delete', success: true/false }
+  // Liest einen Chunk aus der Datei und sendet ihn
+  private sendNextChunk(
+    file: File,
+    safeName: string,
+    chunkIndex: number,
+    totalChunks: number,
+    result: Subject<boolean>,
+    onProgress: ((p: TransferProgress) => void) | undefined,
+    isCancelled: () => boolean
+  ): void {
+    if (isCancelled()) return;
+    if (chunkIndex >= totalChunks) return; // warten auf upload-complete vom Server
+
+    const start = chunkIndex * UPLOAD_CHUNK_SIZE;
+    const end = Math.min(start + UPLOAD_CHUNK_SIZE, file.size);
+    const slice = file.slice(start, end);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (isCancelled()) return;
+      const base64 = (reader.result as string).split(',')[1];
+      this.socket$.next({ action: 'upload-chunk', fileName: safeName, chunkIndex, data: base64 });
+
+      // Naechsten Chunk sofort vorbereiten (Pipeline: ein Chunk voraus)
+      if (chunkIndex + 1 < totalChunks) {
+        this.sendNextChunk(file, safeName, chunkIndex + 1, totalChunks, result, onProgress, isCancelled);
+      }
+    };
+    reader.onerror = () => { result.next(false); result.complete(); };
+    reader.readAsDataURL(slice);
+  }
+
+  // ==================== Chunked Download ====================
+
+  public downloadFile(fileName: string, onProgress?: (p: TransferProgress) => void): Observable<{ success: boolean; blob?: Blob }> {
+    const result = new Subject<{ success: boolean; blob?: Blob }>();
+    const safeName = WebsocketService.sanitizeFileName(fileName);
+
+    const chunks: Uint8Array[] = [];
+    let totalChunks = 0;
+    let fileSize = 0;
+    let receivedChunks = 0;
+
+    // download-start: Metadaten empfangen
+    const startSub = this.incomingMessages.pipe(
+      filter((msg) => msg.action === 'download-start' && msg.fileName === safeName),
+      first(),
+      rxTimeout(15_000),
+      catchError(() => { result.next({ success: false }); result.complete(); return of(null); }),
+    ).subscribe((msg) => {
+      if (!msg) return;
+      totalChunks = msg.totalChunks;
+      fileSize = msg.fileSize;
+    });
+
+    // download-chunk: Chunks sammeln
+    const chunkSub = this.incomingMessages.pipe(
+      filter((msg) => msg.action === 'download-chunk' && msg.fileName === safeName),
+    ).subscribe((msg) => {
+      const binary = atob(msg.data);
+      const arr = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+      chunks[msg.chunkIndex] = arr;
+      receivedChunks++;
+
+      if (onProgress && fileSize > 0) {
+        const transferred = Math.min(receivedChunks * UPLOAD_CHUNK_SIZE, fileSize);
+        onProgress({ fileName: safeName, transferred, total: fileSize, percent: Math.round(transferred / fileSize * 100) });
+      }
+    });
+
+    // download-complete / download-error
+    const doneSub = this.incomingMessages.pipe(
+      filter((msg) => (msg.action === 'download-complete' || msg.action === 'download-error') && msg.fileName === safeName),
+      first(),
+      rxTimeout(6 * 60 * 60_000),
+      catchError(() => { result.next({ success: false }); result.complete(); return of(null); }),
+    ).subscribe((msg) => {
+      startSub.unsubscribe();
+      chunkSub.unsubscribe();
+      doneSub.unsubscribe();
+      if (!msg || msg.action === 'download-error') {
+        result.next({ success: false });
+        result.complete();
+        return;
+      }
+      // Alle Chunks zusammenfuegen
+      const totalBytes = chunks.reduce((s, c) => s + c.length, 0);
+      const merged = new Uint8Array(totalBytes);
+      let offset = 0;
+      for (const chunk of chunks) { merged.set(chunk, offset); offset += chunk.length; }
+      const blob = new Blob([merged], { type: 'application/octet-stream' });
+      result.next({ success: true, blob });
+      result.complete();
+    });
+
+    this.socket$.next({ action: 'file-download', fileName: safeName });
+    return result.asObservable();
+  }
+
+  // ==================== Datei loeschen ====================
+
   public deleteFile(filePath: string): Observable<boolean> {
     const result = new Subject<boolean>();
     const safePath = WebsocketService.sanitizeFileName(filePath);
-
     this.incomingMessages.pipe(
       filter((msg) => msg.type === 'delete' && msg.path === safePath),
       first(),
       rxTimeout(OP_TIMEOUT),
-      catchError(() => {
-        result.next(false);
-        result.complete();
-        return of();
-      }),
+      catchError(() => { result.next(false); result.complete(); return of(); }),
     ).subscribe({
-      next: (msg) => {
-        result.next(msg.success === true);
-        result.complete();
-      },
-      error: () => {
-        result.next(false);
-        result.complete();
-      },
+      next: (msg) => { result.next(msg.success === true); result.complete(); },
+      error: () => { result.next(false); result.complete(); },
     });
-
     this.socket$.next({ type: 'delete', path: safePath });
-
-    return result.asObservable();
-  }
-
-  // Datei vom Server herunterladen (action: 'file-download').
-  // Server antwortet mit { action: 'file-download', success, fileName, fileType, size, data (Base64) }
-  public downloadFile(fileName: string): Observable<{ success: boolean; data?: string }> {
-    const result = new Subject<{ success: boolean; data?: string }>();
-    const safeName = WebsocketService.sanitizeFileName(fileName);
-
-    this.incomingMessages.pipe(
-      filter((msg) => msg.action === 'file-download' && msg.fileName === safeName),
-      first(),
-      rxTimeout(DOWNLOAD_TIMEOUT),
-      catchError(() => {
-        result.next({ success: false });
-        result.complete();
-        return of();
-      }),
-    ).subscribe({
-      next: (msg) => {
-        result.next({ success: msg.success === true, data: msg.data });
-        result.complete();
-      },
-      error: () => {
-        result.next({ success: false });
-        result.complete();
-      },
-    });
-
-    this.socket$.next({ action: 'file-download', fileName: safeName });
-
     return result.asObservable();
   }
 
   // ==================== Basis-Methoden ====================
 
-  public getConnectedUrl(): string | null {
-    return this.connectedUrl;
-  }
+  public getConnectedUrl(): string | null { return this.connectedUrl; }
+  public sendMessage(msg: any): void { this.socket$.next(msg); }
+  public getMessages(): Observable<any> { return this.incomingMessages.asObservable(); }
 
-  // Nachricht ueber den aktiven Socket senden
-  public sendMessage(msg: any): void {
-    this.socket$.next(msg);
-  }
-
-  // Observable fuer eingehende Nachrichten (fuer externe Subscriber)
-  public getMessages(): Observable<any> {
-    return this.incomingMessages.asObservable();
-  }
-
-  // Verbindung trennen und URL zuruecksetzen
   public closeConnection(): void {
     this.msgSub?.unsubscribe();
     this.msgSub = null;
