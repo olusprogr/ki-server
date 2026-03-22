@@ -14,6 +14,8 @@ export interface ServerFile {
   addedAt: Date;
   status: 'uploading' | 'done' | 'error' | 'deleting' | 'downloading' | 'server';
   progress?: number; // 0-100, nur waehrend Upload/Download
+  eta?: string;      // z.B. "45s" oder "2min 10s"
+  speed?: string;    // z.B. "1.2 MB/s"
   // 'server'   = bereits auf dem Server vorhanden (aus list-Response)
   // 'uploading' = wird gerade hochgeladen
   // 'done'      = Upload erfolgreich bestaetigt vom Server
@@ -276,11 +278,25 @@ export class WsConsole implements OnInit, OnDestroy {
     };
     this.files.push(entry);
 
+    const startTime = Date.now();
+
     // Datei in Chunks ueber WSS senden, Server antwortet mit success: true/false
     this.wsService.sendFile(file, (p) => {
       entry.progress = p.percent;
+      const elapsed = (Date.now() - startTime) / 1000;
+      if (elapsed > 0 && p.transferred > 0) {
+        const bytesPerSec = p.transferred / elapsed;
+        const remaining = p.total - p.transferred;
+        const etaSec = remaining / bytesPerSec;
+        entry.speed = this.formatSize(Math.round(bytesPerSec)) + '/s';
+        entry.eta = etaSec < 60
+          ? Math.round(etaSec) + 's'
+          : Math.round(etaSec / 60) + 'min ' + Math.round(etaSec % 60) + 's';
+      }
     }).subscribe((ok) => {
       entry.progress = undefined;
+      entry.eta = undefined;
+      entry.speed = undefined;
       entry.status = ok ? 'done' : 'error';
     });
   }
