@@ -13,9 +13,10 @@ export interface ServerFile {
   type: string;
   addedAt: Date;
   status: 'uploading' | 'done' | 'error' | 'deleting' | 'downloading' | 'server';
-  progress?: number; // 0-100, nur waehrend Upload/Download
-  eta?: string;      // z.B. "45s" oder "2min 10s"
-  speed?: string;    // z.B. "1.2 MB/s"
+  progress?: number;  // 0-100, nur waehrend Upload/Download
+  eta?: string;       // z.B. "45s" oder "2min 10s"
+  speed?: string;     // z.B. "1.2 MB/s"
+  errorMsg?: string;  // Fehlermeldung im Status 'error'
   // 'server'   = bereits auf dem Server vorhanden (aus list-Response)
   // 'uploading' = wird gerade hochgeladen
   // 'done'      = Upload erfolgreich bestaetigt vom Server
@@ -267,7 +268,7 @@ export class WsConsole implements OnInit, OnDestroy {
   }
 
   // Datei zur Liste hinzufuegen und ueber den WebSocket an den Server senden.
-  // Wartet auf die Server-Antwort fuer den tatsaechlichen Status (done/error).
+  // Bei Fehler: einmal automatisch nach 10 Sekunden erneut versuchen.
   private addAndUploadFile(file: File): void {
     const entry: ServerFile = {
       name: file.name,
@@ -277,10 +278,14 @@ export class WsConsole implements OnInit, OnDestroy {
       status: 'uploading',
     };
     this.files.push(entry);
+    this.runUpload(file, entry, false);
+  }
 
+  private runUpload(file: File, entry: ServerFile, isRetry: boolean): void {
+    entry.status = 'uploading';
+    entry.errorMsg = undefined;
     const startTime = Date.now();
 
-    // Datei in Chunks ueber WSS senden, Server antwortet mit success: true/false
     this.wsService.sendFile(file, (p) => {
       entry.progress = p.percent;
       const elapsed = (Date.now() - startTime) / 1000;
@@ -293,11 +298,28 @@ export class WsConsole implements OnInit, OnDestroy {
           ? Math.round(etaSec) + 's'
           : Math.round(etaSec / 60) + 'min ' + Math.round(etaSec % 60) + 's';
       }
-    }).subscribe((ok) => {
+    }).subscribe((res) => {
       entry.progress = undefined;
       entry.eta = undefined;
       entry.speed = undefined;
-      entry.status = ok ? 'done' : 'error';
+
+      if (res.ok) {
+        entry.status = 'done';
+        entry.errorMsg = undefined;
+      } else if (!isRetry) {
+        // Erster Fehlversuch -> in 10s nochmal probieren
+        entry.status = 'error';
+        entry.errorMsg = (res.error ?? 'Unbekannter Fehler') + ' – Wiederholung in 10s…';
+        setTimeout(() => {
+          if (entry.status === 'error') {
+            this.runUpload(file, entry, true);
+          }
+        }, 10_000);
+      } else {
+        // Zweiter Versuch auch fehlgeschlagen -> endgueltig
+        entry.status = 'error';
+        entry.errorMsg = res.error ?? 'Upload fehlgeschlagen (2 Versuche)';
+      }
     });
   }
 
@@ -312,14 +334,13 @@ export class WsConsole implements OnInit, OnDestroy {
     // Loesch-Request an den Server senden
     if (file.status === 'server' || file.status === 'done') {
       file.status = 'deleting';
-      this.wsService.deleteFile(file.name).subscribe((ok) => {
-        if (ok) {
-          // Aus der lokalen Liste entfernen
+      this.wsService.deleteFile(file.name).subscribe((res) => {
+        if (res.ok) {
           const idx = this.files.indexOf(file);
           if (idx !== -1) this.files.splice(idx, 1);
         } else {
-          // Fehler -> zurueck auf vorherigen Status
           file.status = 'error';
+          file.errorMsg = res.error;
         }
       });
     } else {
@@ -372,8 +393,10 @@ export class WsConsole implements OnInit, OnDestroy {
           URL.revokeObjectURL(url);
         }, 100);
         file.status = prevStatus;
+        file.errorMsg = undefined;
       } else {
         file.status = 'error';
+        file.errorMsg = res.error;
       }
     });
   }

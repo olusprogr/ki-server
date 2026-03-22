@@ -118,9 +118,8 @@ export class WebsocketService {
 
   // ==================== Chunked Upload ====================
 
-  // Gibt Fortschritt (0-100%) zurueck, abschliessend true/false als letzter Wert
-  public sendFile(file: File, onProgress?: (p: TransferProgress) => void): Observable<boolean> {
-    const result = new Subject<boolean>();
+  public sendFile(file: File, onProgress?: (p: TransferProgress) => void): Observable<{ ok: boolean; error?: string }> {
+    const result = new Subject<{ ok: boolean; error?: string }>();
 
     this.uploadQueue.push(() => this.executeUpload(file, onProgress, result));
     this.drainUploadQueue();
@@ -135,32 +134,30 @@ export class WebsocketService {
     next();
   }
 
-  private executeUpload(file: File, onProgress: ((p: TransferProgress) => void) | undefined, result: Subject<boolean>): void {
+  private executeUpload(file: File, onProgress: ((p: TransferProgress) => void) | undefined, result: Subject<{ ok: boolean; error?: string }>): void {
     const safeName = WebsocketService.sanitizeFileName(file.name);
     const totalChunks = Math.ceil(file.size / UPLOAD_CHUNK_SIZE);
     let cancelled = false;
 
-    const finish = (ok: boolean) => {
-      result.next(ok);
+    const finish = (ok: boolean, error?: string) => {
+      result.next({ ok, error });
       result.complete();
       this.uploadRunning = false;
       this.drainUploadQueue();
     };
 
-    // Auf upload-start Antwort warten bevor Chunks gesendet werden
     const startSub = this.incomingMessages.pipe(
       filter((msg) => msg.action === 'upload-start' && msg.fileName === safeName),
       first(),
       rxTimeout(15_000),
-      catchError(() => { finish(false); return of(null); }),
+      catchError(() => { finish(false, 'Server hat nicht geantwortet (Timeout 15s)'); return of(null); }),
     ).subscribe((msg) => {
       if (!msg) return;
       if (msg.skipped) { finish(true); return; }
-      if (!msg.success) { finish(false); return; }
+      if (!msg.success) { finish(false, msg.reason || 'Server hat Upload abgelehnt'); return; }
       this.sendNextChunk(file, safeName, 0, totalChunks, result, onProgress, () => cancelled);
     });
 
-    // Auf ACKs hoeren (Flow-Control + Fortschritt)
     const ackSub = this.incomingMessages.pipe(
       filter((msg) => msg.action === 'upload-chunk-ack' && msg.fileName === safeName),
     ).subscribe((msg) => {
@@ -171,35 +168,37 @@ export class WebsocketService {
       }
     });
 
-    // Auf Abschluss oder Fehler hoeren
     const doneSub = this.incomingMessages.pipe(
       filter((msg) => (msg.action === 'upload-error' || msg.action === 'upload-complete') && msg.fileName === safeName),
       first(),
       rxTimeout(6 * 60 * 60_000),
-      catchError(() => { startSub.unsubscribe(); ackSub.unsubscribe(); finish(false); return of(null); }),
+      catchError(() => { startSub.unsubscribe(); ackSub.unsubscribe(); finish(false, 'Upload-Timeout (6h überschritten)'); return of(null); }),
     ).subscribe((msg) => {
       startSub.unsubscribe();
       ackSub.unsubscribe();
       doneSub.unsubscribe();
       if (!msg) return;
-      finish(msg.action === 'upload-complete' && msg.success === true);
+      if (msg.action === 'upload-complete' && msg.success === true) {
+        finish(true);
+      } else {
+        finish(false, msg.reason || 'Server hat Upload-Fehler gemeldet');
+      }
     });
 
     this.socket$.next({ action: 'upload-start', fileName: safeName, totalChunks, fileSize: file.size });
   }
 
-  // Liest einen Chunk aus der Datei und sendet ihn
   private sendNextChunk(
     file: File,
     safeName: string,
     chunkIndex: number,
     totalChunks: number,
-    result: Subject<boolean>,
+    result: Subject<{ ok: boolean; error?: string }>,
     onProgress: ((p: TransferProgress) => void) | undefined,
     isCancelled: () => boolean
   ): void {
     if (isCancelled()) return;
-    if (chunkIndex >= totalChunks) return; // warten auf upload-complete vom Server
+    if (chunkIndex >= totalChunks) return;
 
     const start = chunkIndex * UPLOAD_CHUNK_SIZE;
     const end = Math.min(start + UPLOAD_CHUNK_SIZE, file.size);
@@ -211,19 +210,18 @@ export class WebsocketService {
       const base64 = (reader.result as string).split(',')[1];
       this.socket$.next({ action: 'upload-chunk', fileName: safeName, chunkIndex, data: base64 });
 
-      // Naechsten Chunk sofort vorbereiten (Pipeline: ein Chunk voraus)
       if (chunkIndex + 1 < totalChunks) {
         this.sendNextChunk(file, safeName, chunkIndex + 1, totalChunks, result, onProgress, isCancelled);
       }
     };
-    reader.onerror = () => { result.next(false); result.complete(); };
+    reader.onerror = () => { result.next({ ok: false, error: 'Datei konnte nicht gelesen werden' }); result.complete(); };
     reader.readAsDataURL(slice);
   }
 
   // ==================== Chunked Download ====================
 
-  public downloadFile(fileName: string, onProgress?: (p: TransferProgress) => void): Observable<{ success: boolean; blob?: Blob }> {
-    const result = new Subject<{ success: boolean; blob?: Blob }>();
+  public downloadFile(fileName: string, onProgress?: (p: TransferProgress) => void): Observable<{ success: boolean; blob?: Blob; error?: string }> {
+    const result = new Subject<{ success: boolean; blob?: Blob; error?: string }>();
     const safeName = WebsocketService.sanitizeFileName(fileName);
 
     const chunks: Uint8Array[] = [];
@@ -231,19 +229,17 @@ export class WebsocketService {
     let fileSize = 0;
     let receivedChunks = 0;
 
-    // download-start: Metadaten empfangen
     const startSub = this.incomingMessages.pipe(
       filter((msg) => msg.action === 'download-start' && msg.fileName === safeName),
       first(),
       rxTimeout(15_000),
-      catchError(() => { result.next({ success: false }); result.complete(); return of(null); }),
+      catchError(() => { result.next({ success: false, error: 'Server hat nicht geantwortet (Timeout 15s)' }); result.complete(); return of(null); }),
     ).subscribe((msg) => {
       if (!msg) return;
       totalChunks = msg.totalChunks;
       fileSize = msg.fileSize;
     });
 
-    // download-chunk: Chunks sammeln
     const chunkSub = this.incomingMessages.pipe(
       filter((msg) => msg.action === 'download-chunk' && msg.fileName === safeName),
     ).subscribe((msg) => {
@@ -259,22 +255,20 @@ export class WebsocketService {
       }
     });
 
-    // download-complete / download-error
     const doneSub = this.incomingMessages.pipe(
       filter((msg) => (msg.action === 'download-complete' || msg.action === 'download-error') && msg.fileName === safeName),
       first(),
       rxTimeout(6 * 60 * 60_000),
-      catchError(() => { result.next({ success: false }); result.complete(); return of(null); }),
+      catchError(() => { result.next({ success: false, error: 'Download-Timeout (6h überschritten)' }); result.complete(); return of(null); }),
     ).subscribe((msg) => {
       startSub.unsubscribe();
       chunkSub.unsubscribe();
       doneSub.unsubscribe();
       if (!msg || msg.action === 'download-error') {
-        result.next({ success: false });
+        result.next({ success: false, error: msg?.reason || 'Server hat Download-Fehler gemeldet' });
         result.complete();
         return;
       }
-      // Alle Chunks zusammenfuegen
       const totalBytes = chunks.reduce((s, c) => s + c.length, 0);
       const merged = new Uint8Array(totalBytes);
       let offset = 0;
@@ -290,17 +284,17 @@ export class WebsocketService {
 
   // ==================== Datei loeschen ====================
 
-  public deleteFile(filePath: string): Observable<boolean> {
-    const result = new Subject<boolean>();
+  public deleteFile(filePath: string): Observable<{ ok: boolean; error?: string }> {
+    const result = new Subject<{ ok: boolean; error?: string }>();
     const safePath = WebsocketService.sanitizeFileName(filePath);
     this.incomingMessages.pipe(
       filter((msg) => msg.type === 'delete' && msg.path === safePath),
       first(),
       rxTimeout(OP_TIMEOUT),
-      catchError(() => { result.next(false); result.complete(); return of(); }),
+      catchError(() => { result.next({ ok: false, error: 'Server hat nicht geantwortet (Timeout 30s)' }); result.complete(); return of(null); }),
     ).subscribe({
-      next: (msg) => { result.next(msg.success === true); result.complete(); },
-      error: () => { result.next(false); result.complete(); },
+      next: (msg) => { result.next(msg?.success === true ? { ok: true } : { ok: false, error: msg?.reason || 'Löschen fehlgeschlagen' }); result.complete(); },
+      error: () => { result.next({ ok: false, error: 'Verbindungsfehler beim Löschen' }); result.complete(); },
     });
     this.socket$.next({ type: 'delete', path: safePath });
     return result.asObservable();
