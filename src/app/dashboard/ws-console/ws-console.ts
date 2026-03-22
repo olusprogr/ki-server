@@ -319,8 +319,11 @@ export class WsConsole implements OnInit, OnDestroy {
         const a = document.createElement('a');
         a.href = url;
         a.download = file.name;
+        a.style.display = 'none';
+        document.body.appendChild(a);
         a.click();
-        URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 10_000);
 
         file.status = prevStatus;
       } else {
