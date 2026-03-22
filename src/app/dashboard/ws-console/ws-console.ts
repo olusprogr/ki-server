@@ -13,6 +13,7 @@ export interface ServerFile {
   type: string;
   addedAt: Date;
   status: 'uploading' | 'done' | 'error' | 'deleting' | 'downloading' | 'server';
+  progress?: number; // 0-100, nur waehrend Upload/Download
   // 'server'   = bereits auf dem Server vorhanden (aus list-Response)
   // 'uploading' = wird gerade hochgeladen
   // 'done'      = Upload erfolgreich bestaetigt vom Server
@@ -261,8 +262,11 @@ export class WsConsole implements OnInit, OnDestroy {
     };
     this.files.push(entry);
 
-    // Datei als Base64 ueber WSS senden, Server antwortet mit success: true/false
-    this.wsService.sendFile(file).subscribe((ok) => {
+    // Datei in Chunks ueber WSS senden, Server antwortet mit success: true/false
+    this.wsService.sendFile(file, (p) => {
+      entry.progress = p.percent;
+    }).subscribe((ok) => {
+      entry.progress = undefined;
       entry.status = ok ? 'done' : 'error';
     });
   }
@@ -304,17 +308,12 @@ export class WsConsole implements OnInit, OnDestroy {
     const prevStatus = file.status;
     file.status = 'downloading';
 
-    this.wsService.downloadFile(file.name).subscribe((res) => {
-      if (res.success && res.data) {
-        // Base64 direkt in Uint8Array dekodieren ohne Zwischenarray
-        const binary = atob(res.data);
-        const byteArray = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) {
-          byteArray[i] = binary.charCodeAt(i);
-        }
-        const blob = new Blob([byteArray], { type: 'application/octet-stream' });
-
-        const url = URL.createObjectURL(blob);
+    this.wsService.downloadFile(file.name, (p) => {
+      file.progress = p.percent;
+    }).subscribe((res) => {
+      file.progress = undefined;
+      if (res.success && res.blob) {
+        const url = URL.createObjectURL(res.blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = file.name;
@@ -325,7 +324,6 @@ export class WsConsole implements OnInit, OnDestroy {
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
         }, 100);
-
         file.status = prevStatus;
       } else {
         file.status = 'error';

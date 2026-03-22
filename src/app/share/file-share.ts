@@ -17,6 +17,7 @@ export class FileShareComponent implements OnInit, OnDestroy {
   status: 'connecting' | 'downloading' | 'done' | 'error' = 'connecting';
   errorMessage = '';
   fileSize = '';
+  progress = 0;
 
   private socket$: WebSocketSubject<any> | null = null;
 
@@ -70,47 +71,57 @@ export class FileShareComponent implements OnInit, OnDestroy {
       },
     });
 
-    this.socket$
-      .pipe(
-        filter((msg: any) => msg.action === 'file-download' && msg.fileName === fileName),
-        first(),
-        timeout(300_000),
-        catchError(() => {
-          this.status = 'error';
-          this.errorMessage = 'Verbindung zum Server fehlgeschlagen';
-          this.socket$?.complete();
-          return of();
-        }),
-      )
-      .subscribe({
-        next: (msg) => {
-          if (msg.success && msg.data) {
-            this.triggerDownload(msg.data, fileName, msg.fileType);
-            this.status = 'done';
-          } else {
-            this.status = 'error';
-            this.errorMessage = 'Datei konnte nicht geladen werden';
-          }
-          this.socket$?.complete();
-        },
-        error: () => {
-          this.status = 'error';
-          this.errorMessage = 'Verbindung zum Server fehlgeschlagen';
-        },
-      });
+    const chunks: Uint8Array[] = [];
+    let totalChunks = 0;
+
+    // download-start: Metadaten
+    this.socket$.pipe(
+      filter((msg: any) => msg.action === 'download-start' && msg.fileName === fileName),
+      first(),
+      timeout(15_000),
+      catchError(() => { this.status = 'error'; this.errorMessage = 'Server antwortet nicht'; this.socket$?.complete(); return of(null); }),
+    ).subscribe((msg) => {
+      if (!msg) return;
+      totalChunks = msg.totalChunks;
+      this.fileSize = this.formatSize(msg.fileSize);
+    });
+
+    // download-chunk: Chunks sammeln
+    const chunkSub = this.socket$.pipe(
+      filter((msg: any) => msg.action === 'download-chunk' && msg.fileName === fileName),
+    ).subscribe((msg: any) => {
+      const binary = atob(msg.data);
+      const arr = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+      chunks[msg.chunkIndex] = arr;
+      this.progress = Math.round((msg.chunkIndex + 1) / msg.totalChunks * 100);
+    });
+
+    // download-complete / download-error
+    this.socket$.pipe(
+      filter((msg: any) => (msg.action === 'download-complete' || msg.action === 'download-error') && msg.fileName === fileName),
+      first(),
+      timeout(6 * 60 * 60_000),
+      catchError(() => { this.status = 'error'; this.errorMessage = 'Timeout'; this.socket$?.complete(); return of(null); }),
+    ).subscribe((msg) => {
+      chunkSub.unsubscribe();
+      this.socket$?.complete();
+      if (!msg || msg.action === 'download-error') {
+        this.status = 'error';
+        this.errorMessage = 'Datei konnte nicht geladen werden';
+        return;
+      }
+      const totalBytes = chunks.reduce((s, c) => s + c.length, 0);
+      const merged = new Uint8Array(totalBytes);
+      let offset = 0;
+      for (const chunk of chunks) { merged.set(chunk, offset); offset += chunk.length; }
+      const blob = new Blob([merged], { type: 'application/octet-stream' });
+      this.triggerDownload(blob, fileName);
+      this.status = 'done';
+    });
   }
 
-  private triggerDownload(base64: string, name: string, mimeType?: string): void {
-    const byteChars = atob(base64);
-    const byteNumbers = new Array(byteChars.length);
-    for (let i = 0; i < byteChars.length; i++) {
-      byteNumbers[i] = byteChars.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: 'application/octet-stream' });
-
-    this.fileSize = this.formatSize(blob.size);
-
+  private triggerDownload(blob: Blob, name: string): void {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
