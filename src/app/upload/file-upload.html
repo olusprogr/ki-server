@@ -1,0 +1,145 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6">
+  <div class="w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:border dark:border-gray-700 p-8">
+
+    <!-- Checking token -->
+    @if (tokenStatus === 'checking') {
+      <div class="flex flex-col items-center gap-4 text-center">
+        <svg class="w-8 h-8 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Link wird überprüft...</p>
+      </div>
+    }
+
+    <!-- Invalid / expired token -->
+    @if (tokenStatus === 'invalid' || tokenStatus === 'expired') {
+      <div class="flex flex-col items-center gap-4 text-center">
+        <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+          <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-gray-900 dark:text-white">Link ungültig oder abgelaufen</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Bitte einen neuen Upload-Link anfordern.</p>
+        </div>
+      </div>
+    }
+
+    <!-- PIN gate -->
+    @if (tokenStatus === 'ok' && !pinUnlocked) {
+      <div class="flex flex-col items-center gap-6 text-center">
+        <div class="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+          <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-base font-semibold text-gray-900 dark:text-white">Upload freischalten</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Gib den PIN ein, um Dateien hochzuladen.</p>
+        </div>
+        <form (submit)="$event.preventDefault(); submitPin()" class="w-full flex flex-col items-center gap-3">
+          <input
+            type="password"
+            [(ngModel)]="pinInput"
+            name="pin"
+            inputmode="numeric"
+            maxlength="4"
+            placeholder="PIN"
+            autofocus
+            class="w-32 text-center text-xl tracking-widest px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 transition"
+            [ngClass]="pinError
+              ? 'border-red-400 ring-red-300 dark:border-red-500'
+              : 'border-gray-300 dark:border-gray-600 focus:ring-blue-400 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white'"
+          />
+          @if (pinError) {
+            <p class="text-xs text-red-500">Falscher PIN. Bitte erneut versuchen.</p>
+          }
+          <button
+            type="submit"
+            class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition"
+          >
+            Freischalten
+          </button>
+        </form>
+      </div>
+    }
+
+    <!-- Upload UI -->
+    @if (tokenStatus === 'ok' && pinUnlocked) {
+      <div class="flex flex-col gap-6">
+
+        <div class="text-center">
+          <p class="text-base font-semibold text-gray-900 dark:text-white">Dateien hochladen</p>
+          <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Dateien werden direkt auf den Server übertragen.</p>
+        </div>
+
+        <!-- Drop zone -->
+        <div
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+          (click)="fileInput.click()"
+          class="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all"
+          [ngClass]="isDragOver
+            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/10'
+            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'"
+        >
+          <input #fileInput type="file" multiple class="hidden" (change)="onFileSelect($event)">
+          <svg class="w-8 h-8 mx-auto mb-2 transition-colors"
+            [ngClass]="isDragOver ? 'text-blue-500' : 'text-gray-400 dark:text-gray-500'"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+          </svg>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            {{ isDragOver ? 'Dateien ablegen' : 'Dateien hierher ziehen oder klicken' }}
+          </p>
+        </div>
+
+        <!-- File list -->
+        @if (files.length > 0) {
+          <ul class="flex flex-col gap-2">
+            @for (f of files; track f.name) {
+              <li class="flex flex-col gap-1 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ f.name }}</span>
+                  <span class="text-xs text-gray-400 dark:text-gray-500 shrink-0">{{ formatSize(f.size) }}</span>
+                </div>
+
+                @if (f.status === 'waiting') {
+                  <span class="text-xs text-gray-400 dark:text-gray-500">Wartend...</span>
+                }
+
+                @if (f.status === 'uploading') {
+                  <div class="flex flex-col gap-1">
+                    <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
+                      <div class="bg-blue-500 h-1.5 rounded-full transition-all" [style.width.%]="f.progress"></div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs text-blue-500 font-mono">{{ f.speed }}</span>
+                      <span class="text-xs text-gray-400 dark:text-gray-500 font-mono">ETA {{ f.eta }}</span>
+                    </div>
+                  </div>
+                }
+
+                @if (f.status === 'done') {
+                  <span class="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400 font-medium">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Hochgeladen
+                  </span>
+                }
+
+                @if (f.status === 'error') {
+                  <span class="text-xs text-red-500">{{ f.errorMsg || 'Upload fehlgeschlagen' }}</span>
+                }
+              </li>
+            }
+          </ul>
+        }
+
+      </div>
+    }
+
+  </div>
+</div>

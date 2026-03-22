@@ -7,6 +7,7 @@ import { ErrorPage } from './error-page/error-page';
 import { Analytics } from './dashboard/analytics/analytics';
 import { WsConsole } from './dashboard/ws-console/ws-console';
 import { FileShareComponent } from './share/file-share';
+import { FileUploadComponent } from './upload/file-upload';
 import { authGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
@@ -15,6 +16,7 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent, title: 'Login' },
 
   { path: 'share/:token', component: FileShareComponent, title: 'Datei Download' },
+  { path: 'upload/:token', component: FileUploadComponent, title: 'Datei Upload' },
 
   {
     path: 'dashboard',

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../api-service';
 import { WebsocketService } from '../../websocket-service';
 import { UiDevice } from '../dashboard-component/device.model';
-import { createShareToken } from '../../auth/share-token';
+import { createShareToken, createUploadToken } from '../../auth/share-token';
 
 // Datei-Objekt fuer die UI-Liste
 export interface ServerFile {
@@ -45,6 +45,7 @@ export class WsConsole implements OnInit, OnDestroy {
   files: ServerFile[] = [];
   isDragOver = false;
   copiedIndex: number | null = null;
+  uploadLinkCopied = false;
 
   // --- State: Download-Fortschritt & Musik ---
   downloadEta: string = '';
@@ -453,6 +454,34 @@ export class WsConsole implements OnInit, OnDestroy {
     setTimeout(() => {
       if (this.copiedIndex === index) this.copiedIndex = null;
     }, 2000);
+  }
+
+  // Generiert einen Upload-Link (10 min gueltig) und kopiert ihn in die Zwischenablage.
+  // Der Link fuehrt zu /upload/:token, wo man nach PIN-Eingabe Dateien hochladen kann.
+  async shareUploadLink(): Promise<void> {
+    const payload = {
+      ip: 'olusprogr.dynv6.net',
+      port: 8080,
+      expiresAt: Date.now() + 10 * 60_000,
+    };
+    const token = await createUploadToken(payload);
+    const link = `${window.location.origin}/upload/${token}`;
+
+    const copied = await navigator.clipboard.writeText(link).then(() => true).catch(() => false);
+    if (!copied) {
+      const ta = document.createElement('textarea');
+      ta.value = link;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+
+    this.uploadLinkCopied = true;
+    setTimeout(() => { this.uploadLinkCopied = false; }, 2000);
   }
 
   // ==================== Hilfsfunktionen ====================
