@@ -200,9 +200,9 @@
     <!-- File List -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:border dark:border-gray-700">
 
-      <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+      <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+          <div class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
             </svg>
@@ -212,43 +212,89 @@
             <p class="text-xs text-gray-400 dark:text-gray-500">Dateien, die über den WSS bereitgestellt werden</p>
           </div>
         </div>
-        <button
-          (click)="refreshFiles()"
-          [disabled]="loadingFiles"
-          class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Aktualisieren"
-        >
-          <svg class="w-4 h-4" [class.animate-spin]="loadingFiles" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-          </svg>
-        </button>
+        <div class="flex items-center gap-2">
+          <!-- Search -->
+          <div class="relative">
+            <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z"/>
+            </svg>
+            <input
+              type="text"
+              [(ngModel)]="searchQuery"
+              placeholder="Suchen..."
+              class="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-primary-500 w-40"
+            />
+          </div>
+          <!-- Refresh -->
+          <button
+            (click)="refreshFiles()"
+            [disabled]="loadingFiles"
+            class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Aktualisieren"
+          >
+            <svg class="w-4 h-4" [class.animate-spin]="loadingFiles" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
-      @if (files.length === 0) {
+      @if (filteredFiles.length === 0) {
         <div class="p-12 text-center">
           <svg class="w-10 h-10 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
           </svg>
-          <p class="text-sm text-gray-400 dark:text-gray-500">Keine Dateien vorhanden</p>
-          <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Dateien per Drag & Drop oder Klick hinzufügen</p>
+          @if (searchQuery) {
+            <p class="text-sm text-gray-400 dark:text-gray-500">Keine Dateien für "{{ searchQuery }}"</p>
+          } @else {
+            <p class="text-sm text-gray-400 dark:text-gray-500">Keine Dateien vorhanden</p>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Dateien per Drag & Drop oder Klick hinzufügen</p>
+          }
         </div>
       }
 
-      @if (files.length > 0) {
+      @if (filteredFiles.length > 0) {
         <div class="overflow-x-auto">
           <table class="w-full text-sm text-left">
             <thead class="text-xs uppercase text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50">
               <tr>
-                <th class="px-6 py-3 font-medium">Datei</th>
+                <th class="px-6 py-3 font-medium">
+                  <button (click)="setSort('name')" class="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200 transition">
+                    Datei
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      @if (sortField === 'name' && sortDir === 'asc') {
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+                      } @else if (sortField === 'name' && sortDir === 'desc') {
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      } @else {
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
+                      }
+                    </svg>
+                  </button>
+                </th>
                 <th class="px-6 py-3 font-medium">Typ</th>
-                <th class="px-6 py-3 font-medium">Größe</th>
+                <th class="px-6 py-3 font-medium">
+                  <button (click)="setSort('size')" class="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200 transition">
+                    Größe
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      @if (sortField === 'size' && sortDir === 'asc') {
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+                      } @else if (sortField === 'size' && sortDir === 'desc') {
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      } @else {
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
+                      }
+                    </svg>
+                  </button>
+                </th>
                 <th class="px-6 py-3 font-medium">Hinzugefügt</th>
                 <th class="px-6 py-3 font-medium">Status</th>
                 <th class="px-6 py-3 font-medium w-16"></th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-              @for (file of files; track file.name; let i = $index) {
+              @for (file of filteredFiles; track file.name) {
+                @let i = files.indexOf(file);
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
 
                   <!-- Name -->
@@ -415,7 +461,7 @@
         </div>
       }
 
-      @if (files.length > 0) {
+      @if (filteredFiles.length > 0) {
         <div class="p-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-end">
           <p class="text-xs text-gray-400 dark:text-gray-500">{{ files.length }} Dateien &middot; {{ formatSize(totalSize) }}</p>
         </div>

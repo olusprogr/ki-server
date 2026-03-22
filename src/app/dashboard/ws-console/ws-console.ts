@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../api-service';
 import { WebsocketService } from '../../websocket-service';
 import { UiDevice } from '../dashboard-component/device.model';
@@ -22,7 +23,7 @@ export interface ServerFile {
 @Component({
   selector: 'app-ws-console',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './ws-console.html',
 })
 export class WsConsole implements OnInit, OnDestroy {
@@ -40,6 +41,32 @@ export class WsConsole implements OnInit, OnDestroy {
   files: ServerFile[] = [];
   isDragOver = false;
   copiedIndex: number | null = null;
+
+  // --- State: Suche & Sortierung ---
+  searchQuery = '';
+  sortField: 'name' | 'size' = 'name';
+  sortDir: 'asc' | 'desc' = 'asc';
+
+  get filteredFiles(): ServerFile[] {
+    const q = this.searchQuery.trim().toLowerCase();
+    let result = q ? this.files.filter(f => f.name.toLowerCase().includes(q)) : [...this.files];
+    result.sort((a, b) => {
+      const cmp = this.sortField === 'name'
+        ? a.name.localeCompare(b.name)
+        : a.size - b.size;
+      return this.sortDir === 'asc' ? cmp : -cmp;
+    });
+    return result;
+  }
+
+  setSort(field: 'name' | 'size'): void {
+    if (this.sortField === field) {
+      this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortField = field;
+      this.sortDir = 'asc';
+    }
+  }
 
   constructor(
     private apiService: ApiService,
