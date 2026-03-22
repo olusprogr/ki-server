@@ -388,19 +388,24 @@
                       </span>
                     }
                     @if (file.status === 'uploading') {
-                      <div class="flex flex-col gap-0.5">
-                        <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                      <div class="flex flex-col gap-1.5">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 w-fit">
                           <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          Upload
+                          Upload {{ file.progress ? file.progress + '%' : '' }}
                         </span>
+                        @if (file.progress) {
+                          <div class="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
+                            <div class="bg-blue-500 h-1.5 rounded-full transition-all" [style.width.%]="file.progress"></div>
+                          </div>
+                        }
                         @if (file.speed) {
-                          <span class="text-xs text-blue-500 dark:text-blue-400 font-mono pl-1">{{ file.speed }}</span>
+                          <span class="text-xs text-blue-500 dark:text-blue-400 font-mono">{{ file.speed }}</span>
                         }
                         @if (file.eta) {
-                          <span class="text-xs text-gray-400 dark:text-gray-500 font-mono pl-1">ETA {{ file.eta }}</span>
+                          <span class="text-xs text-gray-400 dark:text-gray-500 font-mono">ETA {{ file.eta }}</span>
                         }
                       </div>
                     }
@@ -422,19 +427,24 @@
                       </div>
                     }
                     @if (file.status === 'downloading') {
-                      <div class="flex flex-col gap-0.5">
-                        <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                      <div class="flex flex-col gap-1.5">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 w-fit">
                           <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          Download
+                          Download {{ file.progress ? file.progress + '%' : '' }}
                         </span>
+                        @if (file.progress) {
+                          <div class="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
+                            <div class="bg-blue-500 h-1.5 rounded-full transition-all" [style.width.%]="file.progress"></div>
+                          </div>
+                        }
                         @if (downloadSpeed) {
-                          <span class="text-xs text-blue-500 dark:text-blue-400 font-mono pl-1">{{ downloadSpeed }}</span>
+                          <span class="text-xs text-blue-500 dark:text-blue-400 font-mono">{{ downloadSpeed }}</span>
                         }
                         @if (downloadEta) {
-                          <span class="text-xs text-gray-400 dark:text-gray-500 font-mono pl-1">ETA {{ downloadEta }}</span>
+                          <span class="text-xs text-gray-400 dark:text-gray-500 font-mono">ETA {{ downloadEta }}</span>
                         }
                       </div>
                     }
