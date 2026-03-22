@@ -62,28 +62,16 @@ export class WebsocketService {
 
   // ==================== Verbindungstest ====================
 
-  // Testet ob ein WSS-Server auf dem Geraet laeuft.
-  // Oeffnet eine temporaere Verbindung zu ws://{ip}:{port}.
-  // Bei Erfolg: Haupt-Socket wird auf diese URL umgeschaltet, gibt true zurueck.
-  // Bei Fehler/Timeout (5s): gibt false zurueck, Haupt-Socket bleibt unveraendert.
-  public tryConnect(ip: string): Observable<boolean> {
-    // Nur private IPs zulassen
-    if (!WebsocketService.isPrivateIp(ip)) {
-      return of(false);
-    }
-
-    const result = new Subject<boolean>();
-    const url = this.PROD_WS_URL;
-
-    // Temporaeren Test-Socket oeffnen
+  // Oeffnet einen temporaeren Test-Socket zu einer URL.
+  // onFail wird aufgerufen wenn die Verbindung fehlschlaegt oder der Timeout (5s) ablaeuft.
+  // Bei Erfolg: Haupt-Socket wird auf diese URL umgeschaltet, result emittet true.
+  private tryUrl(url: string, result: Subject<boolean>, onFail: () => void): void {
     const testSocket = webSocket({
       url,
       openObserver: {
         next: () => {
-          // Verbindung hat geklappt
           clearTimeout(connectTimeout);
           testSocket.complete();
-          // Haupt-Socket auf dieses Geraet umschalten
           this.connect(url);
           result.next(true);
           result.complete();
@@ -91,18 +79,31 @@ export class WebsocketService {
       }
     });
 
-    // Timeout: nach 5s aufgeben
     const connectTimeout = setTimeout(() => {
       testSocket.complete();
-      result.next(false);
-      result.complete();
+      onFail();
     }, 5000);
 
-    // Subscribe loest die eigentliche Verbindung aus.
-    // Error = Geraet nicht erreichbar
     testSocket.subscribe({
       error: () => {
         clearTimeout(connectTimeout);
+        onFail();
+      }
+    });
+  }
+
+  // Versucht erst die globale Domain, bei Fehler/Timeout die lokale IP als Fallback.
+  public tryConnect(ip: string, port = 8080): Observable<boolean> {
+    const result = new Subject<boolean>();
+
+    this.tryUrl(this.PROD_WS_URL, result, () => {
+      // Globale Verbindung fehlgeschlagen -> lokale IP versuchen
+      if (WebsocketService.isPrivateIp(ip)) {
+        this.tryUrl(`wss://${ip}:${port}`, result, () => {
+          result.next(false);
+          result.complete();
+        });
+      } else {
         result.next(false);
         result.complete();
       }
