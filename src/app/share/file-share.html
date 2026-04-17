@@ -1,67 +1,86 @@
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6">
-  <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:border dark:border-gray-700 p-8 text-center">
+<div class="relative min-h-screen overflow-hidden bg-gray-50 dark:bg-gray-950 bg-mesh flex items-center justify-center p-6">
 
-    <!-- Connecting -->
-    @if (status === 'connecting') {
-      <div class="flex flex-col items-center gap-4">
-        <div class="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-          <svg class="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        </div>
-        <p class="text-sm text-gray-600 dark:text-gray-400">Verbindung wird hergestellt...</p>
-      </div>
-    }
+  <!-- Animated blobs -->
+  <div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden">
+    <div class="absolute -top-24 -left-24 w-[340px] h-[340px] bg-sky-400/25 dark:bg-sky-500/15 blur-3xl animate-blob"></div>
+    <div class="absolute bottom-0 -right-24 w-[360px] h-[360px] bg-indigo-400/20 dark:bg-indigo-500/15 blur-3xl animate-blob" style="animation-delay:-6s"></div>
+  </div>
 
-    <!-- Downloading -->
-    @if (status === 'downloading') {
-      <div class="flex flex-col items-center gap-4">
-        <div class="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-          <svg class="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        </div>
-        <div>
-          <p class="text-sm font-medium text-gray-900 dark:text-white">{{ fileName }}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Datei wird heruntergeladen...</p>
-        </div>
-      </div>
-    }
+  <div class="relative w-full max-w-md animate-scale-in">
+    <div aria-hidden="true" class="absolute -inset-px rounded-2xl bg-gradient-to-r from-indigo-500 via-sky-500 to-emerald-500 opacity-40 blur-sm animate-gradient"></div>
 
-    <!-- Done -->
-    @if (status === 'done') {
-      <div class="flex flex-col items-center gap-4">
-        <div class="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-          <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-          </svg>
-        </div>
-        <div>
-          <p class="text-sm font-medium text-gray-900 dark:text-white">{{ fileName }}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Download abgeschlossen</p>
-          @if (fileSize) {
-            <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ fileSize }}</p>
-          }
-        </div>
-      </div>
-    }
+    <div class="relative glass rounded-2xl shadow-2xl shadow-indigo-500/10 p-8 text-center">
 
-    <!-- Error -->
-    @if (status === 'error') {
-      <div class="flex flex-col items-center gap-4">
-        <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-          <svg class="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
+      <!-- Connecting -->
+      @if (status === 'connecting') {
+        <div class="flex flex-col items-center gap-4 animate-fade-in">
+          <div class="relative w-16 h-16">
+            <div class="absolute inset-0 rounded-full border-4 border-indigo-200 dark:border-indigo-900/40"></div>
+            <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-indigo-500 animate-spin"></div>
+          </div>
+          <p class="text-sm text-gray-600 dark:text-gray-300">Verbindung wird hergestellt...</p>
         </div>
-        <div>
-          <p class="text-sm font-medium text-gray-900 dark:text-white">Fehler</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ errorMessage }}</p>
-        </div>
-      </div>
-    }
+      }
 
+      <!-- Downloading -->
+      @if (status === 'downloading') {
+        <div class="flex flex-col items-center gap-4 animate-fade-in">
+          <div class="relative w-16 h-16">
+            <div class="absolute inset-0 rounded-full bg-indigo-500/20 blur-xl animate-pulse"></div>
+            <div class="absolute inset-0 rounded-full border-4 border-indigo-200 dark:border-indigo-900/40"></div>
+            <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-indigo-500 border-r-fuchsia-500 animate-spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ fileName }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Datei wird heruntergeladen...</p>
+          </div>
+        </div>
+      }
+
+      <!-- Done -->
+      @if (status === 'done') {
+        <div class="flex flex-col items-center gap-4 animate-pop-in">
+          <div class="relative">
+            <div class="absolute inset-0 rounded-full bg-emerald-500/30 blur-xl"></div>
+            <div class="relative w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/40">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ fileName }}</p>
+            <p class="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium">Download abgeschlossen</p>
+            @if (fileSize) {
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5 font-mono">{{ fileSize }}</p>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Error -->
+      @if (status === 'error') {
+        <div class="flex flex-col items-center gap-4 animate-pop-in">
+          <div class="relative">
+            <div class="absolute inset-0 rounded-full bg-red-500/30 blur-xl animate-pulse"></div>
+            <div class="relative w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/40">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </div>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-gray-900 dark:text-white">Fehler</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ errorMessage }}</p>
+          </div>
+        </div>
+      }
+
+    </div>
   </div>
 </div>

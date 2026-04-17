@@ -1,63 +1,267 @@
 <aside
   [ngClass]="{
-    'fixed inset-y-0 left-0 z-50 w-64': isMobile,
-    'static w-64': !isMobile,
-    '-translate-x-full': !menuOpen,
-    'translate-x-0': menuOpen
+    'fixed inset-y-0 left-0 z-50 w-72': isMobile,
+    'sticky top-0 w-72 h-screen': !isMobile,
+    '-translate-x-full': !menuOpen && isMobile,
+    'translate-x-0': menuOpen || !isMobile
   }"
-  class="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm
-         transition-transform duration-300 ease-in-out
+  class="glass border-r border-gray-200/70 dark:border-gray-800/70
+         shadow-xl shadow-indigo-500/5
+         transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
          overflow-y-auto flex flex-col"
 >
   <!-- Logo / Brand -->
-  <div class="p-6 pb-4">
-    <a href="#" class="flex items-center text-xl font-semibold text-gray-900 dark:text-white">
-      <img class="w-7 h-7 mr-2" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg" alt="logo">
-      Münster
+  <div class="px-6 pt-6 pb-4">
+    <a href="#" class="flex items-center text-xl font-semibold text-gray-900 dark:text-white group">
+      <span class="relative flex items-center justify-center w-10 h-10 mr-3 rounded-xl
+                   bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500
+                   shadow-lg shadow-indigo-500/40
+                   transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
+        <img class="w-6 h-6" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg" alt="logo">
+        <span class="absolute inset-0 rounded-xl bg-indigo-500/40 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></span>
+      </span>
+      <span class="text-gradient">Münster</span>
     </a>
+    <p class="text-[11px] uppercase tracking-widest text-gray-400 dark:text-gray-500 mt-2 pl-[52px]">Control Panel</p>
+  </div>
+
+  <!-- Search -->
+  <div class="px-4 pb-3">
+    <div class="relative group">
+      <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 group-focus-within:text-indigo-500 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M16.5 10.5a6 6 0 11-12 0 6 6 0 0112 0z"/>
+        </svg>
+      </span>
+      <input
+        type="search"
+        placeholder="Suchen..."
+        class="w-full pl-9 pr-10 py-2 text-sm rounded-xl
+               bg-white/60 dark:bg-gray-800/60
+               border border-gray-200/80 dark:border-gray-700
+               text-gray-900 dark:text-white
+               placeholder:text-gray-400 dark:placeholder-gray-500
+               focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+               transition-all duration-200"
+      />
+      <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5">
+        <kbd class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-200/70 dark:bg-gray-700 text-gray-500 dark:text-gray-400">⌘K</kbd>
+      </span>
+    </div>
   </div>
 
   <!-- Navigation -->
-  <nav class="flex-1 px-4 space-y-1 text-sm">
-    <a
-      routerLink="/dashboard/start"
-      routerLinkActive="bg-primary-600/10 text-primary-600 dark:text-primary-500 font-semibold"
-      class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-      (click)="closeMenu.emit()"
-    >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-      </svg>
-      Dashboard
-    </a>
+  <nav class="flex-1 px-4 pb-4 text-sm space-y-5">
 
-    <a
-      routerLink="/dashboard/analytics"
-      routerLinkActive="bg-primary-600/10 text-primary-600 dark:text-primary-500 font-semibold"
-      class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-      (click)="closeMenu.emit()"
-    >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-      </svg>
-      Analytics
-    </a>
+    <!-- Section: Übersicht -->
+    <div class="space-y-1 animate-slide-in-left">
+      <p class="px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">Übersicht</p>
 
-    <a
-      routerLink="/dashboard/server"
-      routerLinkActive="bg-primary-600/10 text-primary-600 dark:text-primary-500 font-semibold"
-      class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-      (click)="closeMenu.emit()"
-    >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/>
-      </svg>
-      Server
-    </a>
+      <a routerLink="/dashboard/start" routerLinkActive="nav-active" #n1="routerLinkActive"
+         (click)="closeMenu.emit()"
+         class="group relative flex items-center gap-3 px-3 py-2 rounded-xl overflow-hidden
+                text-gray-700 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-white/5
+                transition-all duration-300">
+        <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-gradient-to-b from-indigo-500 to-fuchsia-500 transition-opacity duration-300"
+              [class.opacity-0]="!n1.isActive" [class.opacity-100]="n1.isActive"></span>
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-300 group-hover:scale-110"
+              [ngClass]="n1.isActive
+                ? 'bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white shadow shadow-indigo-500/30'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:text-indigo-500'">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+        </span>
+        <span class="font-medium flex-1" [class.text-indigo-600]="n1.isActive" [class.dark:text-indigo-300]="n1.isActive">Dashboard</span>
+      </a>
+
+      <a routerLink="/dashboard/analytics" routerLinkActive="nav-active" #n2="routerLinkActive"
+         (click)="closeMenu.emit()"
+         class="group relative flex items-center gap-3 px-3 py-2 rounded-xl overflow-hidden
+                text-gray-700 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-white/5
+                transition-all duration-300">
+        <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-gradient-to-b from-indigo-500 to-fuchsia-500 transition-opacity duration-300"
+              [class.opacity-0]="!n2.isActive" [class.opacity-100]="n2.isActive"></span>
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-300 group-hover:scale-110"
+              [ngClass]="n2.isActive
+                ? 'bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white shadow shadow-indigo-500/30'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:text-indigo-500'">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+        </span>
+        <span class="font-medium flex-1" [class.text-indigo-600]="n2.isActive" [class.dark:text-indigo-300]="n2.isActive">Analytics</span>
+        <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-300">Live</span>
+      </a>
+
+      <a href="#" (click)="$event.preventDefault(); closeMenu.emit()"
+         class="group relative flex items-center gap-3 px-3 py-2 rounded-xl overflow-hidden
+                text-gray-700 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-white/5
+                transition-all duration-300">
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:text-indigo-500 transition-all duration-300 group-hover:scale-110">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </span>
+        <span class="font-medium flex-1">Aktivität</span>
+      </a>
+    </div>
+
+    <!-- Section: Verwaltung -->
+    <div class="space-y-1 animate-slide-in-left" style="animation-delay:80ms">
+      <p class="px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">Verwaltung</p>
+
+      <a routerLink="/dashboard/server" routerLinkActive="nav-active" #n3="routerLinkActive"
+         (click)="closeMenu.emit()"
+         class="group relative flex items-center gap-3 px-3 py-2 rounded-xl overflow-hidden
+                text-gray-700 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-white/5
+                transition-all duration-300">
+        <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-gradient-to-b from-indigo-500 to-fuchsia-500 transition-opacity duration-300"
+              [class.opacity-0]="!n3.isActive" [class.opacity-100]="n3.isActive"></span>
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-300 group-hover:scale-110"
+              [ngClass]="n3.isActive
+                ? 'bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white shadow shadow-indigo-500/30'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:text-indigo-500'">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/>
+          </svg>
+        </span>
+        <span class="font-medium flex-1" [class.text-indigo-600]="n3.isActive" [class.dark:text-indigo-300]="n3.isActive">Server</span>
+      </a>
+
+      <a href="#" (click)="$event.preventDefault(); closeMenu.emit()"
+         class="group relative flex items-center gap-3 px-3 py-2 rounded-xl overflow-hidden
+                text-gray-700 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-white/5
+                transition-all duration-300">
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:text-indigo-500 transition-all duration-300 group-hover:scale-110">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+        </span>
+        <span class="font-medium flex-1">Geräte</span>
+      </a>
+
+      <a href="#" (click)="$event.preventDefault(); closeMenu.emit()"
+         class="group relative flex items-center gap-3 px-3 py-2 rounded-xl overflow-hidden
+                text-gray-700 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-white/5
+                transition-all duration-300">
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:text-indigo-500 transition-all duration-300 group-hover:scale-110">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          </svg>
+        </span>
+        <span class="font-medium flex-1">Dateien</span>
+        <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">12</span>
+      </a>
+
+      <a href="#" (click)="$event.preventDefault(); closeMenu.emit()"
+         class="group relative flex items-center gap-3 px-3 py-2 rounded-xl overflow-hidden
+                text-gray-700 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-white/5
+                transition-all duration-300">
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:text-indigo-500 transition-all duration-300 group-hover:scale-110">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m0 0a4 4 0 105.657-5.657 4 4 0 00-5.657 5.657zM17 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+        </span>
+        <span class="font-medium flex-1">Benutzer</span>
+      </a>
+
+      <a href="#" (click)="$event.preventDefault(); closeMenu.emit()"
+         class="group relative flex items-center gap-3 px-3 py-2 rounded-xl overflow-hidden
+                text-gray-700 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-white/5
+                transition-all duration-300">
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:text-indigo-500 transition-all duration-300 group-hover:scale-110">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+        </span>
+        <span class="font-medium flex-1">Aufgaben</span>
+      </a>
+    </div>
+
+    <!-- Section: System -->
+    <div class="space-y-1 animate-slide-in-left" style="animation-delay:160ms">
+      <p class="px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">System</p>
+
+      <a href="#" (click)="$event.preventDefault(); closeMenu.emit()"
+         class="group relative flex items-center gap-3 px-3 py-2 rounded-xl overflow-hidden
+                text-gray-700 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-white/5
+                transition-all duration-300">
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:text-indigo-500 transition-all duration-300 group-hover:scale-110">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </span>
+        <span class="font-medium flex-1">Netzwerk</span>
+      </a>
+
+      <a href="#" (click)="$event.preventDefault(); closeMenu.emit()"
+         class="group relative flex items-center gap-3 px-3 py-2 rounded-xl overflow-hidden
+                text-gray-700 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-white/5
+                transition-all duration-300">
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:text-indigo-500 transition-all duration-300 group-hover:scale-110">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+        </span>
+        <span class="font-medium flex-1">Sicherheit</span>
+      </a>
+
+      <a href="#" (click)="$event.preventDefault(); closeMenu.emit()"
+         class="group relative flex items-center gap-3 px-3 py-2 rounded-xl overflow-hidden
+                text-gray-700 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-white/5
+                transition-all duration-300">
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:text-indigo-500 transition-all duration-300 group-hover:scale-110 relative">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+          <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-900"></span>
+        </span>
+        <span class="font-medium flex-1">Benachrichtigungen</span>
+        <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-red-500/10 text-red-600 dark:text-red-300">3</span>
+      </a>
+
+      <a href="#" (click)="$event.preventDefault(); closeMenu.emit()"
+         class="group relative flex items-center gap-3 px-3 py-2 rounded-xl overflow-hidden
+                text-gray-700 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-white/5
+                transition-all duration-300">
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:text-indigo-500 transition-all duration-300 group-hover:scale-110">
+          <svg class="w-4 h-4 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+        </span>
+        <span class="font-medium flex-1">Einstellungen</span>
+      </a>
+
+      <a href="#" (click)="$event.preventDefault(); closeMenu.emit()"
+         class="group relative flex items-center gap-3 px-3 py-2 rounded-xl overflow-hidden
+                text-gray-700 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-white/5
+                transition-all duration-300">
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:text-indigo-500 transition-all duration-300 group-hover:scale-110">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </span>
+        <span class="font-medium flex-1">Hilfe</span>
+      </a>
+    </div>
   </nav>
 
-  <!-- Bottom section -->
-  <div class="p-4 border-t border-gray-200 dark:border-gray-700">
-    <p class="text-xs text-gray-400 dark:text-gray-500 text-center">Münster Panel v1.0</p>
+  <!-- User card -->
+  <div class="p-4 border-t border-gray-200/70 dark:border-gray-800/70 animate-fade-in-up">
+    <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/60 dark:hover:bg-white/5 transition-colors cursor-pointer group">
+      <div class="relative w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 flex items-center justify-center text-white text-sm font-semibold shadow-md shadow-indigo-500/30">
+        M
+        <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 ring-2 ring-white dark:ring-gray-900"></span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">Administrator</p>
+        <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate">System aktiv &middot; v1.0</p>
+      </div>
+      <svg class="w-4 h-4 text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+    </div>
   </div>
 </aside>
