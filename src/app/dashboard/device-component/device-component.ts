@@ -26,6 +26,8 @@ export class DeviceComponent {
   messageInput: string = '';
   validOperations: string[] = ['start', 'stop', 'restart', 'status'];
 
+  private readonly MAX_LOG_SIZE = 200;
+
   constructor(
     private websocketService: WebsocketService,
     private apiService: ApiService,
@@ -36,12 +38,19 @@ export class DeviceComponent {
         return;
       }
       this.isConnected = true;
-      this.messageLog.push({
-        type: 'received',
-        content: message.message,
-        timestamp: new Date()
-      });
+      this.pushMessage({ type: 'received', content: message.message, timestamp: new Date() });
     });
+  }
+
+  trackMessage(_index: number, msg: Message): string {
+    return msg.timestamp.getTime() + msg.content;
+  }
+
+  private pushMessage(msg: Message): void {
+    this.messageLog.push(msg);
+    if (this.messageLog.length > this.MAX_LOG_SIZE) {
+      this.messageLog.splice(0, this.messageLog.length - this.MAX_LOG_SIZE);
+    }
   }
 
   sendMessage(): void {
@@ -51,14 +60,11 @@ export class DeviceComponent {
 
     this.websocketService.sendMessage({message: this.messageInput});
 
-    this.messageLog.push({
-      type: 'sent',
-      content: this.messageInput,
-      timestamp: new Date()
-    });
+    this.pushMessage({ type: 'sent', content: this.messageInput, timestamp: new Date() });
 
     this.messageInput = '';
   }
+
 
   public sendOperation(operation: string): void {
     if (!this.validOperations.includes(operation)) return;
