@@ -93,8 +93,8 @@ npx ng generate component path/name
 
 ```bash
 npm run build
-ssh root@192.168.178.211 "rm -rf /var/www/login-page/*"
-scp -r dist/ki-server-new/* root@192.168.178.211:/var/www/login-page/
+ssh olus@192.168.178.211 "sudo rm -rf /var/www/login-page/*"
+scp -r dist/ki-server-new/* olus@192.168.178.211:/var/www/login-page/
 ```
 
 Oder kurz: `npm run deploy` (führt beides aus).
