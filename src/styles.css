@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ============================================
    GLOBAL ANIMATIONS & INTERACTIVE UTILITIES
    ============================================ */
@@ -7,10 +9,13 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    color-scheme: dark;
   }
   body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: #0f172a;
+    color: #e2e8f0;
   }
   ::selection {
     background: rgba(99, 102, 241, 0.25);
@@ -283,6 +288,28 @@
   .hover-glow:hover {
     box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.35),
                 0 20px 40px -12px rgba(99, 102, 241, 0.35);
+  }
+
+  /* Dark mode: helle Hintergründe */
+  .dark .dark\:bg-gray-950 { background-color: #1e293b !important; }
+  .dark .dark\:bg-gray-900\/60 { background-color: rgba(30,41,59,0.85) !important; }
+  .dark .dark\:bg-gray-900\/80 { background-color: rgba(30,41,59,0.95) !important; }
+  .dark .dark\:bg-gray-900 { background-color: #1e293b !important; }
+  .dark .dark\:bg-gray-800\/60 { background-color: rgba(51,65,85,0.85) !important; }
+  .dark .dark\:bg-gray-800 { background-color: #334155 !important; }
+  .dark .dark\:border-gray-800 { border-color: #475569 !important; }
+  .dark .dark\:border-gray-800\/70 { border-color: rgba(71,85,105,0.7) !important; }
+
+  /* Dark mode: helle Texte */
+  .dark .dark\:text-gray-400 { color: #cbd5e1 !important; }
+  .dark .dark\:text-gray-500 { color: #94a3b8 !important; }
+  .dark .dark\:text-gray-300 { color: #e2e8f0 !important; }
+  .dark .dark\:text-gray-200 { color: #f1f5f9 !important; }
+
+  /* Dark mode: Glass surface heller */
+  .dark .glass {
+    background: rgba(30, 41, 59, 0.85) !important;
+    border: 1px solid rgba(148, 163, 184, 0.12) !important;
   }
 
   /* Primary color aliases for existing markup that uses primary-600 */

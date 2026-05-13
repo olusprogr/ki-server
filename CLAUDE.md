@@ -2,6 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Rules
+Every skills and MCP server will always be downloaded gloally
+
 ## Commands
 
 ```bash

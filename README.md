@@ -1,67 +1,117 @@
-# KiServerNew
+---
+title: ki-server-new
+tags:
+  - angular
+  - projekt
+  - webdev
+aliases:
+  - KI Server
+  - ki-server
+---
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.9.
+# 🌑 ki-server-new
 
-## Development server
+> [!abstract] Übersicht
+> Angular 20 SPA mit SSR (Express) — Dashboard für Geräte-Management, Datei-Up/Download via WebSocket und Echtzeit-Kommunikation.
 
-To start a local development server, run:
+---
 
-```bash
-ng serve
+## 🏗 Architektur
+
+```mermaid
+graph TD
+    A[Browser] --> B[Angular SPA]
+    B --> C[HTTP REST – ApiService]
+    B --> D[WebSocket – WebsocketService]
+    C --> E[API Server :3003]
+    D --> F[WSS olusprogr.dynv6.net:8080]
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+### Zwei Backend-Verbindungen
 
-## Code scaffolding
+| Verbindung    | Service            | URL (Dev)                          | Zweck                  |
+| ------------- | ------------------ | ---------------------------------- | ---------------------- |
+| **HTTP REST** | `ApiService`       | `http://localhost:3003/api`        | Auth, CRUD             |
+| **WebSocket** | `WebsocketService` | `wss://olusprogr.dynv6.net:8080`   | Dateitransfer, Echtzeit|
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+> [!info] Upload-Details
+> Uploads laufen serialisiert über eine interne Queue. Chunks sind **1 MB** groß und base64-kodiert.
 
-```bash
-ng generate component component-name
+---
+
+### 🔐 Auth-Flow
+
+> [!warning] Schutzmechanismen
+> - `authGuard` prüft `localStorage.authToken` → Redirect zu `/login` falls fehlt
+> - `environment.bypassLogin = true` überspringt den Guard in Dev
+> - `authInterceptor` hängt den Token als `Authorization`-Header an jeden Request
+
+---
+
+### 🗺 Routen
+
+```
+/login                        LoginComponent
+/share/:token                 FileShareComponent   (public)
+/upload/:token                FileUploadComponent  (public)
+/dashboard  (authGuard)
+  /start                      DashboardComponent
+  /:dev/:ipv4                 DeviceComponent
+  /analytics                  AnalyticsComponent
+  /server                     WsConsole
+/error                        ErrorPage
+** → /error
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+---
+
+## ⚡ Befehle
+
+> [!tip] Wichtigste Befehle auf einen Blick
 
 ```bash
-ng generate --help
+npm start               # Dev-Server auf 0.0.0.0:3001 (lokales Netzwerk)
+npm run build           # Produktions-Build → dist/ki-server-new/
+npm test                # Karma/Jasmine Unit-Tests
+npm run generate-env    # src/env.ts aus .env generieren
+npm run deploy          # Build + SSH-Deploy nach 192.168.178.211
+npm run watch           # Dev-Build mit Watch-Mode
 ```
 
-## Building
+> [!note] Einzelne Tests
+> Karma hat keinen CLI-Filter — `fdescribe`/`fit` im Spec-File verwenden, dann `npm test`.
 
-To build the project run:
+### Scaffolding
 
 ```bash
-ng build
+npx ng generate component path/name
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+---
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## 🚀 Deploy
 
 ```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
-
-
-## Move and Deploy
-```bash
-ng build
+npm run build
 ssh root@192.168.178.211 "rm -rf /var/www/login-page/*"
 scp -r dist/ki-server-new/* root@192.168.178.211:/var/www/login-page/
 ```
+
+Oder kurz: `npm run deploy` (führt beides aus).
+
+---
+
+## 🧬 Environment & Secrets
+
+> [!example] Konfigurations-Quellen
+> - **Dev-Werte:** `src/environments/environment.ts`
+> - **Prod:** `src/environments/environment.prod.ts` (`apiUrl: '/api'`, reverse-proxied via nginx)
+> - **Runtime-Env-Vars:** `.env` → `npm run generate-env` → `src/env.ts`
+
+---
+
+## 🎨 Styling
+
+> [!quote] Tooling
+> **Tailwind CSS v4** (PostCSS) · Globale Styles in `src/styles.css`
+> **Prettier:** `printWidth: 100`, Single Quotes, Angular HTML Parser

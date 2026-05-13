@@ -9,7 +9,17 @@
       "Bash(curl -v --max-time 8 https://olusprogr.dynv6.net:8080)",
       "Bash(openssl s_client -connect olusprogr.dynv6.net:8080 -brief)",
       "Bash(curl --max-time 8 -k https://olusprogr.dynv6.net:8080 -v)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Read(//c/Users/olusp/.claude/skills/excalidraw-diagram/**)",
+      "Read(//c/Users/olusp/.claude/skills/**)",
+      "Bash(gh repo *)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(uv sync *)",
+      "Bash(py --version)",
+      "Bash(npx --yes skills add Redclawww/savethetokens -g)",
+      "Bash(npx --yes skills add Redclawww/savethetokens --global --yes)",
+      "Bash(npx --yes skills add kepano/obsidian-skills --global --yes)"
     ]
   }
 }
